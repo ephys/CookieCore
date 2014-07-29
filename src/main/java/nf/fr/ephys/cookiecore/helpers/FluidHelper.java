@@ -1,9 +1,14 @@
 package nf.fr.ephys.cookiecore.helpers;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 public class FluidHelper {
 	public static Fluid getFluidForBlock(Block block) {
@@ -26,5 +31,62 @@ public class FluidHelper {
 			fluidBlock = Blocks.flowing_lava;
 
 		return fluidBlock;
+	}
+
+	public static FluidStack getFluidFromWorld(World world, int[] coords) {
+		if (world.getTileEntity(coords[0], coords[1], coords[2]) != null) {
+			// todo: send EventOmnibucketPickupNBT
+
+			return null;
+		}
+
+		Block block = world.getBlock(coords[0], coords[1], coords[2]);
+		int l = world.getBlockMetadata(coords[0], coords[1], coords[2]);
+
+		Fluid targetFluid = getFluidForBlock(block);
+
+		if (l == 0 && targetFluid != null) {
+			world.setBlockToAir(coords[0], coords[1], coords[2]);
+			return new FluidStack(targetFluid, 1000);
+		}
+
+		return null;
+	}
+
+	// todo: send event for NBT fluid placement
+	public static boolean placeFluidInWorld(int[] coords, World world, FluidStack fluidstack) {
+		Fluid fluid = fluidstack.getFluid();
+		if (!fluid.canBePlacedInWorld() || fluidstack.tag != null) {
+			return false;
+		}
+
+		Block block = world.getBlock(coords[0], coords[1], coords[2]);
+		Material material = block.getMaterial();
+
+		if (material.isSolid()) return false;
+
+		if (world.provider.isHellWorld && fluid == FluidRegistry.WATER) {
+			world.playSoundEffect(coords[0] + 0.5D, coords[1] + 0.5D, coords[2] + 0.5D, "random.fizz", 0.5F, 2.6F + world.rand.nextFloat() - world.rand.nextFloat() * 0.8F);
+
+			for (int l = 0; l < 8; ++l) {
+				world.spawnParticle("largesmoke", coords[0] + Math.random(), coords[1] + Math.random(), coords[2] + Math.random(), 0.0D, 0.0D, 0.0D);
+			}
+		} else {
+			if (!world.isRemote && !material.isLiquid()) {
+				world.func_147480_a(coords[0], coords[1], coords[2], true);
+			}
+
+			world.setBlock(coords[0], coords[1], coords[2], getBlockForFluid(fluid), 0, 3);
+		}
+
+		return true;
+	}
+
+	public static boolean playerPlaceFluid(EntityPlayer player, int[] coords, int side, ItemStack stack, World world, FluidStack fluidstack) {
+		return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) && placeFluidInWorld(coords, world, fluidstack);
+	}
+
+	public static FluidStack playerPickupFluid(EntityPlayer player, World world, int[] coords, int side, ItemStack stack) {
+		return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) ? getFluidFromWorld(world, coords) : null;
 	}
 }

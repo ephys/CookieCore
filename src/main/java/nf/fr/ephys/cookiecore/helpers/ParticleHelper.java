@@ -1,4 +1,4 @@
-package nf.fr.ephys.playerproxies.helpers;
+package nf.fr.ephys.cookiecore.helpers;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

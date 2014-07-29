@@ -1,4 +1,4 @@
-package nf.fr.ephys.playerproxies.helpers;
+package nf.fr.ephys.cookiecore.helpers;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
