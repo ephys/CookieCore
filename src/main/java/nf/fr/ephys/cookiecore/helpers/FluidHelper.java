@@ -46,7 +46,6 @@ public class FluidHelper {
 		Fluid targetFluid = getFluidForBlock(block);
 
 		if (l == 0 && targetFluid != null) {
-			world.setBlockToAir(coords[0], coords[1], coords[2]);
 			return new FluidStack(targetFluid, 1000);
 		}
 

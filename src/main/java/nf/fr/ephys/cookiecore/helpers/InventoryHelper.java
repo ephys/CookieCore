@@ -9,8 +9,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 public class InventoryHelper {
-	public static void insertItem(IInventory inventory, ItemStack stack) {
-		insertItem(inventory, stack, 0);
+	public static boolean insertItem(IInventory inventory, ItemStack stack) {
+		return insertItem(inventory, stack, 0);
 	}
 
 	public static boolean insertItem(IInventory inventory, ItemStack toInsert, int side) {
