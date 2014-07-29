@@ -1,4 +1,4 @@
-package nf.fr.ephys.playerproxies.util;
+package nf.fr.ephys.cookiecore.util;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
