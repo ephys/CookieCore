@@ -1,0 +1,12 @@
+.gradle/
+gradle/
+eclipse/
+
+CREDITS-fml.txt
+forge*
+Forge*
+MinecraftForge*
+README.txt
+gradlew
+gradlew.bat
+LICENSE-fml.txt
