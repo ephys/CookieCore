@@ -9,64 +9,64 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 public class InventoryHelper {
-	public static boolean insertItem(IInventory inventory, ItemStack stack) {
-		return insertItem(inventory, stack, 0);
+	public static int[] getUnSidedInventorySlots(IInventory inventory) {
+		int[] slots = new int[inventory.getSizeInventory()];
+
+		for (int i = 0; i < slots.length; i++) {
+			slots[i] = i;
+		}
+
+		return slots;
+	}
+
+	public static boolean insertItem(IInventory inventory, ItemStack toInsert) {
+		return insertItem(inventory, getUnSidedInventorySlots(inventory), toInsert);
 	}
 
 	public static boolean insertItem(IInventory inventory, ItemStack toInsert, int side) {
-		boolean isSided = inventory instanceof ISidedInventory;
+		if (inventory instanceof ISidedInventory) {
+			return insertItem(inventory, ((ISidedInventory) inventory).getAccessibleSlotsFromSide(side), toInsert);
+		}
 
-		int[] accessibleSlots = isSided ? ((ISidedInventory) inventory).getAccessibleSlotsFromSide(side) : null;
+		return insertItem(inventory, toInsert);
+	}
 
-		if (isSided && accessibleSlots == null) return false;
-
-		int size = isSided ? accessibleSlots.length : inventory.getSizeInventory();
-
-		int[] insertInSlots = new int[size];
+	public static boolean insertItem(IInventory inventory, int[] slots, ItemStack toInsert) {
+		int[] insertBySlot = new int[slots.length];
 		int totalInserted = 0;
 
-		for (int i = 0; i < size && totalInserted < toInsert.stackSize; i++) {
-			int slot = isSided ? accessibleSlots[i] : i;
+		int i;
+		for (i = 0; i < slots.length && totalInserted < toInsert.stackSize; i++) {
+			if (!inventory.isItemValidForSlot(slots[i], toInsert)) continue;
 
-			ItemStack slotStack = inventory.getStackInSlot(slot);
+			ItemStack stack = inventory.getStackInSlot(slots[i]);
 
-			int inserted = 0;
-			if (slotStack == null || slotStack.stackSize == 0) {
-				inserted = Math.min(toInsert.stackSize - totalInserted, inventory.getInventoryStackLimit());
+			if (stack != null && !stack.isItemEqual(toInsert)) continue;
 
-			} else if (slotStack.isItemEqual(toInsert)
-					&& slotStack.stackSize < inventory.getInventoryStackLimit()
-					&& slotStack.stackSize < slotStack.getMaxStackSize()) {
-				inserted = Math.min(
-						Math.min(toInsert.stackSize - totalInserted,
-								inventory.getInventoryStackLimit() - slotStack.stackSize),
-								slotStack.getMaxStackSize() - slotStack.stackSize);
-			}
+			int emptyness = stack == null ? inventory.getInventoryStackLimit() : inventory.getInventoryStackLimit() - stack.stackSize;
 
-			insertInSlots[i] = inserted;
-			totalInserted += totalInserted;
+			if (emptyness > toInsert.getMaxStackSize())
+				emptyness = toInsert.getMaxStackSize();
+
+			int inserted = Math.min(emptyness, toInsert.stackSize - totalInserted);
+
+			insertBySlot[i] = inserted;
+			totalInserted += inserted;
 		}
 
 		if (totalInserted != toInsert.stackSize) return false;
 
-		for (int i = 0; i < insertInSlots.length; i++) {
-			if (insertInSlots[i] == 0) continue;
+		for (int j = 0; j < i; j++) {
+			ItemStack stack = inventory.getStackInSlot(slots[j]);
 
-			int slot = isSided ? accessibleSlots[i] : i;
-
-			ItemStack slotStack = inventory.getStackInSlot(slot);
-
-			if (slotStack == null || slotStack.stackSize == 0) {
-				ItemStack stack = toInsert.copy();
-				stack.stackSize = insertInSlots[i];
-
-				inventory.setInventorySlotContents(slot, stack);
-			} else {
-				slotStack.stackSize += insertInSlots[i];
+			if (stack == null) {
+				stack = toInsert.copy();
 			}
-		}
 
-		inventory.markDirty();
+			stack.stackSize = insertBySlot[j];
+
+			inventory.setInventorySlotContents(slots[j], stack);
+		}
 
 		return true;
 	}
