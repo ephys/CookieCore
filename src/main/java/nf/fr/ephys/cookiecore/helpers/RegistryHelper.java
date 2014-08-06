@@ -106,4 +106,25 @@ public class RegistryHelper {
 
 		return nbRemoved;
 	}
+
+	/**
+	 * Converts an itemstack name to an ItemStack instance
+	 * The name must follow this format: modname:itemname@metadata
+	 *
+	 * @param name  the item name
+	 * @return      the matching item stack
+	 */
+	public static ItemStack getItemStack(String name) {
+		String[] data = name.split("@");
+
+		String itemname = data[0];
+
+		Item item = (Item) Item.itemRegistry.getObject(itemname);
+
+		if (item == null) return null;
+
+		int metadata = data.length > 1 ? Integer.parseInt(data[1]) : 0;
+
+		return new ItemStack(item, 1, metadata);
+	}
 }

@@ -23,13 +23,13 @@ compileJava {
 
 apply plugin: 'forge'
 
-version = "1.0.0"
+version = "1.0.1"
 group= "nf.fr.ephys.cookiecore"
 archivesBaseName = "cookiecore"
 
 minecraft {
     version = "1.7.10-10.13.0.1188"
-    assetDir = "eclipse/assets"
+    runDir = "eclipse/assets"
 }
 
 dependencies {}

@@ -12,7 +12,7 @@ public class CookieCoreASM implements IFMLLoadingPlugin {
 
 	@Override
 	public String getModContainerClass() {
-		return null;
+		return "nf.fr.ephys.cookiecore.common.CookieCore";
 	}
 
 	@Override
