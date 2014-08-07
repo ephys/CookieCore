@@ -1,10 +1,14 @@
 package nf.fr.ephys.cookiecore.helpers;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.WorldSavedData;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTank;
+import nf.fr.ephys.cookiecore.util.IWritable;
 
 import java.util.UUID;
 
@@ -112,6 +116,33 @@ public class NBTHelper {
 
 		NBTTagCompound writableNBT = new NBTTagCompound();
 		input.writeToNBT(writableNBT);
+		setWritable(nbt, name, writableNBT);
+	}
+
+	public static void setWritable(NBTTagCompound nbt, String name, FluidTank input) {
+		if (input == null) return;
+
+		NBTTagCompound writableNBT = new NBTTagCompound();
+		input.writeToNBT(writableNBT);
+
+		setWritable(nbt, name, writableNBT);
+	}
+
+	public static void setWritable(NBTTagCompound nbt, String name, FluidStack input) {
+		if (input == null) return;
+
+		NBTTagCompound writableNBT = new NBTTagCompound();
+		input.writeToNBT(writableNBT);
+
+		setWritable(nbt, name, writableNBT);
+	}
+
+	public static void setWritable(NBTTagCompound nbt, String name, IWritable input) {
+		if (input == null) return;
+
+		NBTTagCompound writableNBT = new NBTTagCompound();
+		input.writeToNBT(writableNBT);
+
 		setWritable(nbt, name, writableNBT);
 	}
 
@@ -306,5 +337,15 @@ public class NBTHelper {
 		if (!nbt.hasKey(name)) return def;
 
 		return ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(name));
+	}
+
+	public static FluidStack getFluidStack(NBTTagCompound nbt, String name) {
+		return getFluidStack(nbt, name, null);
+	}
+
+	public static FluidStack getFluidStack(NBTTagCompound nbt, String name, FluidStack def) {
+		if (!nbt.hasKey(name)) return def;
+
+		return FluidStack.loadFluidStackFromNBT(nbt.getCompoundTag(name));
 	}
 }

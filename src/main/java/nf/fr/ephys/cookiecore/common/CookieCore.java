@@ -8,6 +8,8 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
+import nf.fr.ephys.cookiecore.common.world.WorldEvent;
 import nf.fr.ephys.cookiecore.helpers.RegistryHelper;
 import org.apache.logging.log4j.Logger;
 
@@ -15,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 public class CookieCore extends DummyModContainer {
 	public static final String MODNAME = "Cookie Core";
     public static final String MODID = "cookiecore";
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.1.0";
 
 	@Mod.Instance(MODID)
 	public static CookieCore instance;
@@ -25,6 +27,8 @@ public class CookieCore extends DummyModContainer {
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
 		logger = event.getModLog();
+
+		MinecraftForge.EVENT_BUS.register(new WorldEvent());
 	}
 
 	public static Logger getLogger() {
