@@ -9,6 +9,7 @@ import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.common.MinecraftForge;
 import nf.fr.ephys.cookiecore.common.world.WorldEvent;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = CookieCore.MODID, version = CookieCore.VERSION, name = CookieCore.MODNAME)
@@ -20,7 +21,7 @@ public class CookieCore extends DummyModContainer {
 	@Mod.Instance(MODID)
 	public static CookieCore instance;
 
-	private Logger logger;
+	private Logger logger = LogManager.getLogger(getModId());
 
 	public CookieCore() {
 		super(new ModMetadata());
@@ -28,7 +29,7 @@ public class CookieCore extends DummyModContainer {
 		ModMetadata meta = this.getMetadata();
 
 		meta.authorList.add("EphysPotato");
-		meta.description = "Lib for my mods";
+		meta.description = "Lib for my mods.";
 		meta.modId = MODID;
 		meta.version = VERSION;
 		meta.name = MODNAME;
@@ -36,8 +37,6 @@ public class CookieCore extends DummyModContainer {
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
-		logger = event.getModLog();
-
 		MinecraftForge.EVENT_BUS.register(new WorldEvent());
 	}
 

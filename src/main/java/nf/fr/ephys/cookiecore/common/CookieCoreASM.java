@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 import java.util.Map;
 
+@IFMLLoadingPlugin.MCVersion(value = "1.7.10")
 public class CookieCoreASM implements IFMLLoadingPlugin {
 	@Override
 	public String[] getASMTransformerClass() {
@@ -12,7 +13,7 @@ public class CookieCoreASM implements IFMLLoadingPlugin {
 
 	@Override
 	public String getModContainerClass() {
-		return "nf.fr.ephys.cookiecore.common.CookieCore";
+		return null;
 	}
 
 	@Override

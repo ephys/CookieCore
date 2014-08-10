@@ -110,7 +110,7 @@ public class RegistryHelper {
 					}
 				}
 			} catch (Exception e) {
-				CookieCore.getLogger().warn("RegistryUtils::overwriteBlock: failed to overwrite net.minecraft.init.Items entry");
+				CookieCore.getLogger().warn("RegistryUtils::overwriteItem: failed to overwrite net.minecraft.init.Items entry");
 
 				e.printStackTrace();
 			}
