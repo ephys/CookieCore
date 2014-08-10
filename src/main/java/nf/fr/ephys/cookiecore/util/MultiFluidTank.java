@@ -7,7 +7,7 @@ import nf.fr.ephys.cookiecore.helpers.NBTHelper;
 
 import java.util.ArrayList;
 
-public class MultiFluidTank implements IFluidHandler, IWritable {
+public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 	private ArrayList<FluidStack> stacks = new ArrayList<>();
 
 	private int capacity;
@@ -19,26 +19,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable {
 
 	@Override
 	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-		int canFill = Math.min(capacity - totalFluidAmount, resource.amount);
-
-		if (doFill) {
-			FluidStack stackToFill = null;
-
-			for (FluidStack stack : stacks) {
-				if (stack.isFluidEqual(resource)) {
-					stackToFill = stack;
-					break;
-				}
-			}
-
-			if (stackToFill == null) {
-				stacks.add(new FluidStack(resource.fluidID, canFill, resource.tag));
-			} else {
-				stackToFill.amount += canFill;
-			}
-		}
-
-		return canFill;
+		return fill(resource, doFill);
 	}
 
 	@Override
@@ -52,10 +33,13 @@ public class MultiFluidTank implements IFluidHandler, IWritable {
 				FluidStack drained = stack.copy();
 
 				drained.amount = toDrain;
-				stack.amount -= toDrain;
 
-				if (stack.amount <= 0)
-					stacks.remove(i);
+				if (doDrain) {
+					stack.amount -= toDrain;
+
+					if (stack.amount <= 0)
+						stacks.remove(i);
+				}
 
 				return drained;
 			}
@@ -66,21 +50,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable {
 
 	@Override
 	public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		if (stacks.isEmpty()) return null;
-
-		FluidStack stack = stacks.get(0);
-
-		int toDrain = Math.min(maxDrain, stack.amount);
-
-		FluidStack drained = stack.copy();
-
-		drained.amount = toDrain;
-		stack.amount -= toDrain;
-
-		if (stack.amount <= 0)
-			stacks.remove(0);
-
-		return drained;
+		return drain(maxDrain, doDrain);
 	}
 
 	@Override
@@ -132,12 +102,70 @@ public class MultiFluidTank implements IFluidHandler, IWritable {
 		return stacks.get(i);
 	}
 
+	@Override
+	public FluidStack getFluid() {
+		return null;
+	}
+
 	public int getFluidAmount() {
 		return totalFluidAmount;
 	}
 
 	public int getCapacity() {
 		return capacity;
+	}
+
+	@Override
+	public FluidTankInfo getInfo() {
+		if (stacks.isEmpty()) return null;
+
+		return new FluidTankInfo(stacks.get(0), capacity);
+	}
+
+	@Override
+	public int fill(FluidStack resource, boolean doFill) {
+		int canFill = Math.min(capacity - totalFluidAmount, resource.amount);
+
+		if (doFill) {
+			FluidStack stackToFill = null;
+
+			for (FluidStack stack : stacks) {
+				if (stack.isFluidEqual(resource)) {
+					stackToFill = stack;
+					break;
+				}
+			}
+
+			if (stackToFill == null) {
+				stacks.add(new FluidStack(resource.fluidID, canFill, resource.tag));
+			} else {
+				stackToFill.amount += canFill;
+			}
+		}
+
+		return canFill;
+	}
+
+	@Override
+	public FluidStack drain(int maxDrain, boolean doDrain) {
+		if (stacks.isEmpty()) return null;
+
+		FluidStack stack = stacks.get(0);
+
+		int toDrain = Math.min(maxDrain, stack.amount);
+
+		FluidStack drained = stack.copy();
+
+		drained.amount = toDrain;
+
+		if (doDrain) {
+			stack.amount -= toDrain;
+
+			if (stack.amount <= 0)
+				stacks.remove(0);
+		}
+
+		return drained;
 	}
 
 	public void setCapacity(int capacity) {

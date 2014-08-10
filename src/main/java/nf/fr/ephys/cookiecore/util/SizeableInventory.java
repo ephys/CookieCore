@@ -4,29 +4,73 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+import nf.fr.ephys.cookiecore.helpers.InventoryHelper;
 import nf.fr.ephys.cookiecore.helpers.NBTHelper;
+
+import java.util.Arrays;
 
 /**
  * This class is for internal use in anything that requires an inventory
  * Use it to delegate IInventory methods
  */
-public class Inventory implements IInventory, IWritable {
+public class SizeableInventory implements IInventory, IWritable {
 	private int stackSize;
-	public ItemStack[] stacks;
 
-	public Inventory(int nbSlots) {
+	private ItemStack[] stacks;
+	private int nbStacks;
+
+	public SizeableInventory(int nbSlots) {
 		this(nbSlots, 64);
 	}
 
-	public Inventory(int nbSlots, int stackSize) {
+	public SizeableInventory(int nbSlots, int stackSize) {
 		stacks = new ItemStack[nbSlots];
 
 		this.stackSize = stackSize;
 	}
 
+	/**
+	 * Changes the amount of stack this inventory can hold
+	 * @param size  the amount of stacks
+	 */
+	public void setInventorySize(int size) {
+		nbStacks = size;
+
+		if (stacks.length < size) {
+			stacks = Arrays.copyOf(stacks, size);
+		}
+	}
+
+	/**
+	 * Sets the maximum stack size
+	 * @param size  the stack size
+	 */
+	public void setMaxStackSize(int size) {
+		stackSize = size;
+	}
+
+	/**
+	 * Drops any item that stayed in the inventory after a resize to a smaller inventory
+	 *
+	 * @param world The world to drop the items in
+	 * @param x     The x coords to drop the items at
+	 * @param y     The y coords to drop the items at
+	 * @param z     The z coords to drop the items at
+	 */
+	public void dumpOverflow(World world, int x, int y, int z) {
+		for (int i = nbStacks; i < stacks.length; i++) {
+			if (stacks[i] == null) continue;
+
+			InventoryHelper.dropItem(stacks[i], world, x, y, z);
+
+			stacks[i] = null;
+		}
+	}
+
 	@Override
 	public int getSizeInventory() {
-		return stacks.length;
+		return nbStacks;
 	}
 
 	@Override
@@ -99,6 +143,7 @@ public class Inventory implements IInventory, IWritable {
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
+		nbt.setInteger("nbStacks", nbStacks);
 		for (int i = 0; i < stacks.length; i++) {
 			if (stacks[i] == null) continue;
 
@@ -108,6 +153,9 @@ public class Inventory implements IInventory, IWritable {
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
+		this.nbStacks = nbt.getInteger("nbStacks");
+		this.stacks = new ItemStack[nbStacks];
+
 		for (int i = 0; i < stacks.length; i++) {
 			stacks[i] = NBTHelper.getItemStack(nbt, Integer.toString(i));
 		}

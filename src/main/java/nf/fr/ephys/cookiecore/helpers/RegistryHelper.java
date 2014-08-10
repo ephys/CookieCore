@@ -3,8 +3,10 @@ package nf.fr.ephys.cookiecore.helpers;
 import com.google.common.collect.BiMap;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemReed;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
@@ -78,13 +80,59 @@ public class RegistryHelper {
 			}
 		}
 
+		overwriteItemBlock(name, newBlock);
+
+		return oldBlock;
+	}
+
+	public static Item overwriteItem(String name, Item newItem) {
+		Item oldItem = (Item) overwriteEntry(Item.itemRegistry, name, newItem);
+
+		if (oldItem == null) return null;
+
+		if (name.startsWith("minecraft:")) {
+			Field[] items = Items.class.getDeclaredFields();
+
+			try {
+				for (Field itemField : items) {
+					if (itemField.get(null) == oldItem) {
+						itemField.setAccessible(true);
+
+						Field modifiersField = Field.class.getDeclaredField("modifiers");
+						modifiersField.setAccessible(true);
+						modifiersField.setInt(itemField, itemField.getModifiers() & ~Modifier.FINAL);
+
+						itemField.set(null, newItem);
+
+						CookieCore.getLogger().warn("RegistryUtils::overwriteItem: overwrote net.minecraft.init.Items entry");
+
+						break;
+					}
+				}
+			} catch (Exception e) {
+				CookieCore.getLogger().warn("RegistryUtils::overwriteBlock: failed to overwrite net.minecraft.init.Items entry");
+
+				e.printStackTrace();
+			}
+		}
+
+		return oldItem;
+	}
+
+	public static boolean overwriteItemBlock(String name, Block newBlock) {
 		Object oldItem = Item.itemRegistry.getObject(name);
 
 		if (oldItem instanceof ItemBlock) {
 			((ItemBlock) oldItem).field_150939_a = newBlock;
+
+			return true;
 		}
 
-		return oldBlock;
+		return false;
+	}
+
+	public static void overwriteReedBlock(ItemReed reed, Block newBlock) {
+		reed.field_150935_a = newBlock;
 	}
 
 	public static int removeItemRecipe(ItemStack stack) {

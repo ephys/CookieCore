@@ -22,17 +22,6 @@ import java.util.Random;
 public class BlockHelper {
 	private static final int OPPOSITE_SIDES[] = { 1, 0, 3, 2, 5, 4 };
 
-	public static boolean insert(IInventory inventory, ItemStack stack) {
-		for (int i = 0; i < inventory.getSizeInventory(); i++) {
-			if (inventory.isItemValidForSlot(i, stack)) {
-				inventory.setInventorySlotContents(i, stack);
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public static void setBiome(World world, int x, int z, int biomeID) {
 		Chunk chunk = world.getChunkFromBlockCoords(x, z);
 		byte[] biomes = chunk.getBiomeArray();

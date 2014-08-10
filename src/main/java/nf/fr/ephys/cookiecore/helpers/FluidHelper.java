@@ -6,9 +6,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.*;
 
 public class FluidHelper {
 	public static Fluid getFluidForBlock(Block block) {
@@ -87,5 +86,29 @@ public class FluidHelper {
 
 	public static FluidStack playerPickupFluid(EntityPlayer player, World world, int[] coords, int side, ItemStack stack) {
 		return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) ? getFluidFromWorld(world, coords) : null;
+	}
+
+	public static boolean insertFluid(FluidStack stack, IFluidHandler fluidHandler, ForgeDirection direction) {
+		int inserted = fluidHandler.fill(direction, stack, false);
+
+		if (inserted != stack.amount) return false;
+
+		fluidHandler.fill(direction, stack, true);
+
+		return true;
+	}
+
+	public static boolean insertFluid(FluidStack stack, IFluidHandler fluidHandler) {
+		return insertFluid(stack, fluidHandler, ForgeDirection.UNKNOWN);
+	}
+
+	public static boolean insertFluid(FluidStack stack, IFluidTank fluidHandler) {
+		int inserted = fluidHandler.fill(stack, false);
+
+		if (inserted != stack.amount) return false;
+
+		fluidHandler.fill(stack, true);
+
+		return true;
 	}
 }
