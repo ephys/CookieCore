@@ -77,6 +77,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		nbt.setInteger("nbFluids", stacks.size());
+		nbt.setInteger("capacity", capacity);
 
 		for (int i = 0; i < stacks.size(); i++) {
 			NBTHelper.setWritable(nbt, Integer.toString(i), stacks.get(i));
@@ -85,12 +86,18 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
+		capacity = nbt.getInteger("capacity");
 		int nbFluids = nbt.hasKey("nbFluids") ? nbt.getInteger("nbFluids") : 0;
+		totalFluidAmount = 0;
 
 		stacks = new ArrayList<>(nbFluids);
 
 		for (int i = 0; i < stacks.size(); i++) {
-			stacks.set(i, NBTHelper.getFluidStack(nbt, Integer.toString(i)));
+			FluidStack fluid = NBTHelper.getFluidStack(nbt, Integer.toString(i));
+			stacks.set(i, fluid);
+
+			if (fluid != null)
+				totalFluidAmount += fluid.amount;
 		}
 	}
 
@@ -104,7 +111,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 	@Override
 	public FluidStack getFluid() {
-		return null;
+		return stacks.size() == 0 ? null : stacks.get(0);
 	}
 
 	public int getFluidAmount() {
