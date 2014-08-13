@@ -25,6 +25,7 @@ public class SizeableInventory implements IInventory, IWritable {
 	}
 
 	public SizeableInventory(int nbSlots, int stackSize) {
+		nbStacks = nbSlots;
 		stacks = new ItemStack[nbSlots];
 
 		this.stackSize = stackSize;
