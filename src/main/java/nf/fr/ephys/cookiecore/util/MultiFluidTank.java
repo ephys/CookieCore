@@ -36,6 +36,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 				if (doDrain) {
 					stack.amount -= toDrain;
+					totalFluidAmount -= toDrain;
 
 					if (stack.amount <= 0)
 						stacks.remove(i);
@@ -86,10 +87,10 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
-		capacity = nbt.getInteger("capacity");
-		int nbFluids = nbt.hasKey("nbFluids") ? nbt.getInteger("nbFluids") : 0;
 		totalFluidAmount = 0;
+		capacity = nbt.getInteger("capacity");
 
+		int nbFluids = nbt.getInteger("nbFluids");
 		stacks = new ArrayList<>(nbFluids);
 
 		for (int i = 0; i < stacks.size(); i++) {
@@ -148,6 +149,8 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 			} else {
 				stackToFill.amount += canFill;
 			}
+
+			totalFluidAmount += canFill;
 		}
 
 		return canFill;
@@ -167,6 +170,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 		if (doDrain) {
 			stack.amount -= toDrain;
+			totalFluidAmount -= toDrain;
 
 			if (stack.amount <= 0)
 				stacks.remove(0);
