@@ -81,7 +81,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 		nbt.setInteger("capacity", capacity);
 
 		for (int i = 0; i < stacks.size(); i++) {
-			NBTHelper.setWritable(nbt, Integer.toString(i), stacks.get(i));
+			NBTHelper.setWritable(nbt, "f" + i, stacks.get(i));
 		}
 	}
 
@@ -93,12 +93,13 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 		int nbFluids = nbt.getInteger("nbFluids");
 		stacks = new ArrayList<>(nbFluids);
 
-		for (int i = 0; i < stacks.size(); i++) {
-			FluidStack fluid = NBTHelper.getFluidStack(nbt, Integer.toString(i));
-			stacks.set(i, fluid);
+		for (int i = 0; i < nbFluids; i++) {
+			FluidStack fluid = NBTHelper.getFluidStack(nbt, "f" + i);
 
-			if (fluid != null)
+			if (fluid != null) {
 				totalFluidAmount += fluid.amount;
+				stacks.add(i, fluid);
+			}
 		}
 	}
 
