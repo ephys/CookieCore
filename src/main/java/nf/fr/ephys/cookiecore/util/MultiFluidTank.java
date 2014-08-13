@@ -183,4 +183,20 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 	public void setCapacity(int capacity) {
 		this.capacity = capacity;
 	}
+
+	public void setStackPos(Fluid fluid, int pos) {
+		for (int i = 0; i < stacks.size(); i++) {
+			FluidStack stack = stacks.get(i);
+			if (stack.getFluid().equals(fluid)) {
+				stacks.remove(i);
+
+				if (pos > i)
+					pos--;
+
+				stacks.add(pos, stack);
+
+				return;
+			}
+		}
+	}
 }
