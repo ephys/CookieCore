@@ -70,9 +70,10 @@ public class InventoryHelper {
 
 			if (stack == null) {
 				stack = toInsert.copy();
+				stack.stackSize = 0;
 			}
 
-			stack.stackSize = insertBySlot[j];
+			stack.stackSize += insertBySlot[j];
 
 			inventory.setInventorySlotContents(slots[j], stack);
 		}
