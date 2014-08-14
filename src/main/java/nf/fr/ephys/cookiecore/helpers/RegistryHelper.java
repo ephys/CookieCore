@@ -158,6 +158,10 @@ public class RegistryHelper {
 	/**
 	 * Converts an itemstack name to an ItemStack instance
 	 * The name must follow this format: modname:itemname@metadata
+	 *                                   modname:itemname@* will default to metadata 16
+	 *                                   modname:itemname   will default to metadata 0
+	 *
+	 * Metadata 16 is intented, use 16 to check if the metadata should be ignored
 	 *
 	 * @param name  the item name
 	 * @return      the matching item stack
@@ -171,8 +175,17 @@ public class RegistryHelper {
 
 		if (item == null) return null;
 
-		int metadata = data.length > 1 ? Integer.parseInt(data[1]) : 0;
+		try {
+			int metadata;
+			if (data.length > 1) {
+				metadata = data[1].equals("*") ? 16 : Integer.parseInt(data[1]);
+			} else {
+				metadata = 0;
+			}
 
-		return new ItemStack(item, 1, metadata);
+			return new ItemStack(item, 1, metadata);
+		} catch(NumberFormatException e) {
+			return null;
+		}
 	}
 }
