@@ -43,6 +43,10 @@ public class RenderHelper {
 		Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.locationBlocksTexture);
 	}
 
+	/**
+	 * Renders an itemstack
+	 * @param item  The ItemStack
+	 */
 	public static void renderItem3D(ItemStack item) {
 		int maxRenderPasses = item.getItem().getRenderPasses(item.getItemDamage());
 
@@ -94,6 +98,12 @@ public class RenderHelper {
 		GL11.glColor3f(1F, 1F, 1F);
 	}
 
+	/**
+	 * Render a block as a standard block - usefull for custom block renderer
+	 * @param block     The block to render
+	 * @param metadata  The block metadata
+	 * @param renderer  The block renderer
+	 */
 	public static void renderInventoryBlock(Block block, int metadata, RenderBlocks renderer) {
 		Tessellator tessellator = Tessellator.instance;
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
@@ -147,5 +157,73 @@ public class RenderHelper {
 			return fluid.getBlock().getIcon(0, 0);
 
 		return icon;
+	}
+
+	/**
+	 * Repeat an icon to fit the rectangle
+	 *
+	 * @param icon      The icon to draw
+	 * @param x         The x coordinate on the screen
+	 * @param width     The Width of the rectangle
+	 * @param y         The y coordinate on the screen
+	 * @param height    The height of the rectangle
+	 * @param zIndex    z-index
+	 */
+	public static void drawTexturedRect(IIcon icon, int x, int width, int y, int height, float zIndex) {
+		int nbChunksX = width / 16;
+		int nbChunksY = height / 16;
+
+		int xRemainer = width % 16;
+		int yRemainer = height % 16;
+
+		for (int i = 0; i < nbChunksX; i++) {
+			int xStart = x + 16 * i;
+			for (int j = 0; j < nbChunksY; j++) {
+				int yStart = y - 16 * j;
+
+				drawTexturedRectStretch(icon, xStart, 16, yStart, 16, zIndex);
+			}
+
+			// draw Y remainder (horizontal line)
+			int yStart = y - 16 * nbChunksY;
+
+			drawTexturedRectStretch(icon, xStart, 16, yStart + (16 - yRemainer), yRemainer, zIndex);
+		}
+
+		// draw X remainder (vertical line)
+		int xStart = x + 16 * nbChunksX;
+		for (int i = 0; i < nbChunksY; i++) {
+			int yStart = y - 16 * i;
+
+			drawTexturedRectStretch(icon, xStart, xRemainer, yStart, 16, zIndex);
+		}
+
+		// draw the corner
+		int yStart = y - 16 * nbChunksY;
+
+		drawTexturedRectStretch(icon, xStart, xRemainer, yStart + (16 - yRemainer), yRemainer, zIndex);
+	}
+
+	/**
+	 * Draw a textured rectangle with a stretched texture matching the requested size if bigger than 16px
+	 * Or cuts off the texture if smaller than 16px
+	 * Texture is as required if == 16px
+	 *
+	 * Internal method for drawTexturedRect(). If you want a stretched texture, look at GuiContainer.
+	 * If you want a repeated pattern, look at RenderHelper#drawTexturedRect
+	 */
+	private static void drawTexturedRectStretch(IIcon icon, int x, int width, int y, int height, float zIndex) {
+		float iconMinU = icon.getMinU();
+		float iconMaxU = icon.getInterpolatedU(width);
+		float iconMinV = icon.getInterpolatedV(16 - height);
+		float iconMaxV = icon.getMaxV();
+
+		Tessellator tessellator = Tessellator.instance;
+		tessellator.startDrawingQuads();
+		tessellator.addVertexWithUV(x, y + height, zIndex, iconMinU, iconMaxV);
+		tessellator.addVertexWithUV(x + width, y + height, zIndex, iconMaxU, iconMaxV);
+		tessellator.addVertexWithUV(x + width, y, zIndex, iconMaxU, iconMinV);
+		tessellator.addVertexWithUV(x, y, zIndex, iconMinU, iconMinV);
+		tessellator.draw();
 	}
 }
