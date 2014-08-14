@@ -9,12 +9,24 @@ import java.util.ArrayList;
 
 public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 	private ArrayList<FluidStack> stacks = new ArrayList<>();
+	private FluidTankInfo[] fluidTankInfos;
 
 	private int capacity;
 	private int totalFluidAmount = 0;
 
 	public MultiFluidTank(int capacity) {
 		this.capacity = capacity;
+		updateFluidTankInfos();
+	}
+
+	public void updateFluidTankInfos() {
+		fluidTankInfos = new FluidTankInfo[stacks.size() + 1];
+
+		for (int i = 0; i < stacks.size(); i++) {
+			fluidTankInfos[i] = new FluidTankInfo(stacks.get(i), stacks.get(i).amount);
+		}
+
+		fluidTankInfos[stacks.size()] = new FluidTankInfo(null, capacity - totalFluidAmount);
 	}
 
 	@Override
@@ -40,6 +52,8 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 					if (stack.amount <= 0)
 						stacks.remove(i);
+
+					updateFluidTankInfos();
 				}
 
 				return drained;
@@ -66,13 +80,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-		FluidTankInfo[] info = new FluidTankInfo[stacks.size()];
-
-		for (int i = 0; i < info.length; i++) {
-			info[i] = new FluidTankInfo(stacks.get(i), capacity);
-		}
-
-		return info;
+		return fluidTankInfos;
 	}
 
 	@Override
@@ -101,6 +109,8 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 				stacks.add(i, fluid);
 			}
 		}
+
+		updateFluidTankInfos();
 	}
 
 	public int getNbFluids() {
@@ -126,9 +136,7 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 	@Override
 	public FluidTankInfo getInfo() {
-		if (stacks.isEmpty()) return null;
-
-		return new FluidTankInfo(stacks.get(0), capacity);
+		return fluidTankInfos[0];
 	}
 
 	@Override
@@ -152,6 +160,8 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 			}
 
 			totalFluidAmount += canFill;
+
+			updateFluidTankInfos();
 		}
 
 		return canFill;
@@ -175,6 +185,8 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 
 			if (stack.amount <= 0)
 				stacks.remove(0);
+
+			updateFluidTankInfos();
 		}
 
 		return drained;
