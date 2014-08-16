@@ -169,37 +169,40 @@ public class RenderHelper {
 	 * @param height    The height of the rectangle
 	 * @param zIndex    z-index
 	 */
-	public static void drawTexturedRect(IIcon icon, int x, int width, int y, int height, float zIndex) {
-		int nbChunksX = width / 16;
-		int nbChunksY = height / 16;
+	public static void drawTexturedRect(IIcon icon, float x, float width, float y, float height, float zIndex) {
+		int w = (int) Math.floor(width);
+		int h = (int) Math.floor(height);
 
-		int xRemainer = width % 16;
-		int yRemainer = height % 16;
+		int nbChunksX = w / 16;
+		int nbChunksY = h / 16;
+
+		float xRemainer = w % 16 + (width - w);
+		float yRemainer = h % 16 + (height - h);
 
 		for (int i = 0; i < nbChunksX; i++) {
-			int xStart = x + 16 * i;
+			float xStart = x + 16 * i;
 			for (int j = 0; j < nbChunksY; j++) {
-				int yStart = y - 16 * j;
+				float yStart = y - 16 * j;
 
 				drawTexturedRectStretch(icon, xStart, 16, yStart, 16, zIndex);
 			}
 
 			// draw Y remainder (horizontal line)
-			int yStart = y - 16 * nbChunksY;
+			float yStart = y - 16 * nbChunksY;
 
 			drawTexturedRectStretch(icon, xStart, 16, yStart + (16 - yRemainer), yRemainer, zIndex);
 		}
 
 		// draw X remainder (vertical line)
-		int xStart = x + 16 * nbChunksX;
+		float xStart = x + 16 * nbChunksX;
 		for (int i = 0; i < nbChunksY; i++) {
-			int yStart = y - 16 * i;
+			float yStart = y - 16 * i;
 
 			drawTexturedRectStretch(icon, xStart, xRemainer, yStart, 16, zIndex);
 		}
 
 		// draw the corner
-		int yStart = y - 16 * nbChunksY;
+		float yStart = y - 16 * nbChunksY;
 
 		drawTexturedRectStretch(icon, xStart, xRemainer, yStart + (16 - yRemainer), yRemainer, zIndex);
 	}
@@ -212,7 +215,7 @@ public class RenderHelper {
 	 * Internal method for drawTexturedRect(). If you want a stretched texture, look at GuiContainer.
 	 * If you want a repeated pattern, look at RenderHelper#drawTexturedRect
 	 */
-	private static void drawTexturedRectStretch(IIcon icon, int x, int width, int y, int height, float zIndex) {
+	private static void drawTexturedRectStretch(IIcon icon, float x, float width, float y, float height, float zIndex) {
 		float iconMinU = icon.getMinU();
 		float iconMaxU = icon.getInterpolatedU(width);
 		float iconMinV = icon.getInterpolatedV(16 - height);
@@ -225,5 +228,62 @@ public class RenderHelper {
 		tessellator.addVertexWithUV(x + width, y, zIndex, iconMaxU, iconMinV);
 		tessellator.addVertexWithUV(x, y, zIndex, iconMinU, iconMinV);
 		tessellator.draw();
+	}
+
+
+	/**
+	 *  Renders an icon as a cuboid
+	 *
+	 * I wrote this, every part of it, I made it work by writing down schematics and math stuff
+	 * And now I don't even understand how it works anymore
+	 * And it was 5 minutes ago.
+	 *
+	 * @param icon      The icon to render
+	 * @param x         The x coord of the fluid
+	 * @param y         The y coord of the fluid
+	 * @param z         The z coord of the fluid
+	 * @param width     The x length of the fluid
+	 * @param height    The y length of the fluid
+	 * @param length    The z length of the fluid
+	 * @param renderer  RenderBlocks instance
+	 */
+	public static void renderFluidLayer(IIcon icon, int x, float y, int z, int width, double height, int length, RenderBlocks renderer) {
+		// the Y position of the block to draw
+		int yCoord = (int) Math.floor(y);
+
+		// the offset in the block at which the fluid is (from the bottom)
+		double blockYPos = y - yCoord;
+
+		renderer.setRenderBounds(0, blockYPos, 0, 1, height, 1);
+		for (int xPos = 0; xPos < width; xPos++) {
+			for (int zPos = 0; zPos < length; zPos++) {
+				renderer.renderFaceYNeg(null, x + xPos, yCoord, z + zPos, icon);
+				renderer.renderFaceYPos(null, x + xPos, y, z + zPos, icon);
+			}
+		}
+
+		double liquidSize = 0;
+		while (liquidSize < height) {
+			// the height of the block: either the full block (except the bottom offset) or the amount of liquid left if there is less
+			double renderHeight = Math.min(height - liquidSize, 1 - blockYPos);
+
+			renderer.setRenderBounds(0, blockYPos, 0, 1, blockYPos + renderHeight, 1);
+
+			for (int xPos = 0; xPos < width; xPos++) {
+				renderer.renderFaceZNeg(null, x + xPos, yCoord, z, icon);
+				renderer.renderFaceZPos(null, x + xPos, yCoord, z + length - 1, icon);
+			}
+
+			for (int zPos = 0; zPos < length; zPos++) {
+				renderer.renderFaceXNeg(null, x , yCoord, z + zPos, icon);
+				renderer.renderFaceXPos(null, x + width - 1, yCoord, z + zPos, icon);
+			}
+
+			liquidSize += renderHeight;
+
+			// remove the bottom offset, as we no longer will be at the bottom
+			blockYPos = 0.0F;
+			yCoord++;
+		}
 	}
 }

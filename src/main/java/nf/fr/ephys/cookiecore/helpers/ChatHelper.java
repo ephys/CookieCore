@@ -49,4 +49,18 @@ public class ChatHelper {
 
 		return name;
 	}
+
+	public static String formatFluidValue(boolean autoUnit, int amount) {
+		if (!autoUnit || amount < 1000) {
+			return amount + "mB";
+		}
+
+		double converted = amount / 1000;
+		if (converted < 1000) {
+			return MathHelper.round(converted, 3) + "B";
+		}
+
+		converted = converted / 1000;
+		return MathHelper.round(converted, 3) + "kB";
+	}
 }

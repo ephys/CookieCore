@@ -63,4 +63,10 @@ public class MathHelper {
 
 		//return (int) r << 16 + (int) g << 8 + (int) b;
 	}
+
+	public static double round(double value, int digits) {
+		double mult = Math.pow(10, digits);
+
+		return Math.round(value * mult) / mult;
+	}
 }
