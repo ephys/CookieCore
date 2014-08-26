@@ -193,4 +193,15 @@ public class InventoryHelper {
 
 		return false;
 	}
+
+	public static void ensureOreIsRegistered(String oreName, ItemStack is) {
+		int ids[] = OreDictionary.getOreIDs(is);
+
+		for (int id : ids) {
+			if (OreDictionary.getOreName(id).equals(oreName))
+				return;
+		}
+
+		OreDictionary.registerOre(oreName, is);
+	}
 }
