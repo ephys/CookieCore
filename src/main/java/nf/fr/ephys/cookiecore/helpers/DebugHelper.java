@@ -4,6 +4,8 @@ import net.minecraft.world.World;
 import nf.fr.ephys.cookiecore.common.CookieCore;
 
 public class DebugHelper {
+	public static boolean debug = false;
+
 	public static void sidedDebug(World world, String message) {
 		CookieCore.getLogger().info("[" + (world.isRemote ? "CLIENT" : "SERVER") + "] " + message);
 	}
