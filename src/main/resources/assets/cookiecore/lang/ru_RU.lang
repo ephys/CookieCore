@@ -1,0 +1,4 @@
+entity.ItemFrame.name=Предметная рамка
+entity.MinecartHopper.name=Вагонетка с воронкой
+entity.MinecartChest.name=Вагонетка с сундуком
+entity.MinecartFurnace.name=Вагонетка с печью
