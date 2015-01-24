@@ -1,9 +1,7 @@
 package nf.fr.ephys.cookiecore.helpers;
 
 import com.google.common.collect.BiMap;
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -18,7 +16,6 @@ import nf.fr.ephys.cookiecore.common.CookieCore;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
