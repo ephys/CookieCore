@@ -1,7 +1,9 @@
 package nf.fr.ephys.cookiecore.helpers;
 
 import com.google.common.collect.BiMap;
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -15,6 +17,8 @@ import nf.fr.ephys.cookiecore.common.CookieCore;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -158,14 +162,71 @@ public class RegistryHelper {
 	/**
 	 * Converts an itemstack name to an ItemStack instance
 	 * The name must follow this format: modname:itemname@metadata
-	 *                                   modname:itemname@* will default to metadata 16
-	 *                                   modname:itemname   will default to metadata 0
-	 *
-	 * Metadata 16 is intented, use 16 to check if the metadata should be ignored
+	 *                                   modname:itemname@[0-7],[9-14],15   will return itemstacks 0 to 7, 9 to 14 and 15
+	 *                                   modname:itemname@*                 will return an itemstack for each metadata value
+	 *                                   modname:itemname                   will default to metadata 0
 	 *
 	 * @param name  the item name
-	 * @return      the matching item stack
+	 * @return      the matching itemstacks or null if an error occured
 	 */
+	public static ItemStack[] getItemStacks(String name) {
+		String[] data = name.split("@");
+
+		String itemname = data[0];
+
+		Item item = (Item) Item.itemRegistry.getObject(itemname);
+
+		if (item == null) return new ItemStack[0];
+		
+		if (data.length == 1)
+			return new ItemStack[]{ new ItemStack(item) };
+		
+		return parseMetadata(item, data[1]);
+	}
+	
+	private static ItemStack[] parseMetadata(Item item, String metadata) {
+		if (metadata.length() == 1 && metadata.charAt(0) == '@') {
+			ItemStack[] stacks = new ItemStack[item.getMaxDamage() + 1];
+			
+			for (int meta = 0; meta <= item.getMaxDamage(); meta++)
+				stacks[meta] = new ItemStack(item, 1, meta);
+			
+			return stacks;
+		}
+		
+		List<ItemStack> stacks = new ArrayList<>();
+		String[] ranges = metadata.split(",");
+		try {
+			for (String range: ranges) {
+				if (range.length() == 1) {
+					int meta = Integer.parseInt(range);
+					stacks.add(new ItemStack(item, 1, meta));
+					
+					continue;
+				}
+				
+				String[] subRanges = range.substring(1, range.length() - 1).split("-");
+				int lower = Integer.parseInt(subRanges[0]);
+				int upper = Integer.parseInt(subRanges[1]);
+				
+				if (lower > upper) CookieCore.getLogger().error("Failed to parse metadata value " + metadata + ": invalid range " + range);
+				for (int meta = lower; meta <= upper; meta++) {
+					stacks.add(new ItemStack(item, 1, meta));
+				}
+			}
+		} catch(NumberFormatException e) {
+			CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
+			
+			return null;
+		}
+		
+		return stacks.toArray(new ItemStack[stacks.size()]);
+	}
+	
+	/**
+	 * @deprecated use getItemStacks(String name);
+	 */
+	@Deprecated
 	public static ItemStack getItemStack(String name) {
 		String[] data = name.split("@");
 
