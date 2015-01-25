@@ -67,6 +67,7 @@ processResources {
 
 jar {
     classifier = ''
+
     manifest {
 		mainAttributes(
 			"Built-By": System.getProperty('user.name'),
@@ -75,6 +76,7 @@ jar {
 			"Implementation-Version": project.version,
 			"Git-Hash": gitHash
 		)
+        // todo: these should be in the deobf jar too
 		attributes 'FMLCorePlugin': "nf.fr.ephys.cookiecore.common.CookieCoreASM"
 		attributes 'FMLAT': "cookiecore_at.cfg"
 		attributes 'FMLCorePluginContainsFMLMod': true
@@ -97,6 +99,12 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'deobf'
+
+    manifest {
+        attributes 'FMLCorePlugin': "nf.fr.ephys.cookiecore.common.CookieCoreASM"
+        attributes 'FMLAT': "cookiecore_at.cfg"
+        attributes 'FMLCorePluginContainsFMLMod': true
+    }
 }
 
 tasks.build.dependsOn sourceJar, javadocJar, deobfJar

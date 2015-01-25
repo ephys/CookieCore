@@ -30,3 +30,6 @@ MinecraftForge*
 README.txt
 LICENSE-fml.txt
 
+*.ipr
+*.iml
+*.iws

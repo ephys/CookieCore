@@ -182,39 +182,36 @@ public class RegistryHelper {
 	}
 	
 	private static ItemStack[] parseMetadata(Item item, String metadata) {
-		if (metadata.length() == 1 && metadata.charAt(0) == '@') {
-			ItemStack[] stacks = new ItemStack[item.getMaxDamage() + 1];
-			
-			for (int meta = 0; meta <= item.getMaxDamage(); meta++)
-				stacks[meta] = new ItemStack(item, 1, meta);
-			
-			return stacks;
-		}
-		
 		List<ItemStack> stacks = new ArrayList<>();
-		String[] ranges = metadata.split(",");
-		try {
-			for (String range: ranges) {
-				if (range.length() == 1) {
-					int meta = Integer.parseInt(range);
-					stacks.add(new ItemStack(item, 1, meta));
-					
-					continue;
+		if (metadata.charAt(0) == '*') {
+			if (!item.getHasSubtypes()) stacks.add(new ItemStack(item));
+
+			item.getSubItems(item, item.getCreativeTab(), stacks);
+		} else {
+			String[] ranges = metadata.split(",");
+			try {
+				for (String range: ranges) {
+					if (range.length() == 1) {
+						int meta = Integer.parseInt(range);
+						stacks.add(new ItemStack(item, 1, meta));
+
+						continue;
+					}
+
+					String[] subRanges = range.substring(1, range.length() - 1).split("-");
+					int lower = Integer.parseInt(subRanges[0]);
+					int upper = Integer.parseInt(subRanges[1]);
+
+					if (lower > upper) CookieCore.getLogger().error("Failed to parse metadata value " + metadata + ": invalid range " + range);
+					for (int meta = lower; meta <= upper; meta++) {
+						stacks.add(new ItemStack(item, 1, meta));
+					}
 				}
-				
-				String[] subRanges = range.substring(1, range.length() - 1).split("-");
-				int lower = Integer.parseInt(subRanges[0]);
-				int upper = Integer.parseInt(subRanges[1]);
-				
-				if (lower > upper) CookieCore.getLogger().error("Failed to parse metadata value " + metadata + ": invalid range " + range);
-				for (int meta = lower; meta <= upper; meta++) {
-					stacks.add(new ItemStack(item, 1, meta));
-				}
+			} catch(NumberFormatException e) {
+				CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
+
+				return null;
 			}
-		} catch(NumberFormatException e) {
-			CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
-			
-			return null;
 		}
 		
 		return stacks.toArray(new ItemStack[stacks.size()]);
