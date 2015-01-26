@@ -160,7 +160,7 @@ public class RegistryHelper {
 	 * Converts an itemstack name to an ItemStack instance
 	 * The name must follow this format: modname:itemname@metadata
 	 *                                   modname:itemname@[0-7],[9-14],15   will return itemstacks 0 to 7, 9 to 14 and 15
-	 *                                   modname:itemname@*                 will return an itemstack for each metadata value
+	 *                      DEPRECATED - modname:itemname@*                 will default to metadata 0 to 15 (for backwards compatibility. Use the range format)
 	 *                                   modname:itemname                   will default to metadata 0
 	 *
 	 * @param name  the item name
@@ -174,49 +174,57 @@ public class RegistryHelper {
 		Item item = (Item) Item.itemRegistry.getObject(itemname);
 
 		if (item == null) return new ItemStack[0];
-		
+
 		if (data.length == 1)
 			return new ItemStack[]{ new ItemStack(item) };
-		
+
 		return parseMetadata(item, data[1]);
 	}
-	
+
 	private static ItemStack[] parseMetadata(Item item, String metadata) {
-		List<ItemStack> stacks = new ArrayList<>();
 		if (metadata.charAt(0) == '*') {
-			if (!item.getHasSubtypes()) stacks.add(new ItemStack(item));
+			// Won't work on servers. Iz sideonly-ed -_-
+			//if (!item.getHasSubtypes()) stacks.add(new ItemStack(item));
+			//item.getSubItems(item, item.getCreativeTab(), stacks);
 
-			item.getSubItems(item, item.getCreativeTab(), stacks);
-		} else {
-			String[] ranges = metadata.split(",");
-			try {
-				for (String range: ranges) {
-					if (range.length() == 1) {
-						int meta = Integer.parseInt(range);
-						stacks.add(new ItemStack(item, 1, meta));
-
-						continue;
-					}
-
-					String[] subRanges = range.substring(1, range.length() - 1).split("-");
-					int lower = Integer.parseInt(subRanges[0]);
-					int upper = Integer.parseInt(subRanges[1]);
-
-					if (lower > upper) CookieCore.getLogger().error("Failed to parse metadata value " + metadata + ": invalid range " + range);
-					for (int meta = lower; meta <= upper; meta++) {
-						stacks.add(new ItemStack(item, 1, meta));
-					}
-				}
-			} catch(NumberFormatException e) {
-				CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
-
-				return null;
+			CookieCore.getLogger().warn("RegistryHelper::parseMetadata(" + metadata + "): * is deprecated, use the range format (@[0-15],18,[20-29])");
+			ItemStack[] stacks = new ItemStack[16];
+			for (int i = 0; i < stacks.length; i++) {
+				stacks[i] = new ItemStack(item, 1, i);
 			}
+
+			return stacks;
 		}
-		
+
+		List<ItemStack> stacks = new ArrayList<>();
+		String[] ranges = metadata.split(",");
+		try {
+			for (String range: ranges) {
+				if (range.length() == 1) {
+					int meta = Integer.parseInt(range);
+					stacks.add(new ItemStack(item, 1, meta));
+
+					continue;
+				}
+
+				String[] subRanges = range.substring(1, range.length() - 1).split("-");
+				int lower = Integer.parseInt(subRanges[0]);
+				int upper = Integer.parseInt(subRanges[1]);
+
+				if (lower > upper) CookieCore.getLogger().error("Failed to parse metadata value " + metadata + ": invalid range " + range);
+				for (int meta = lower; meta <= upper; meta++) {
+					stacks.add(new ItemStack(item, 1, meta));
+				}
+			}
+		} catch(NumberFormatException e) {
+			CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
+
+			return null;
+		}
+
 		return stacks.toArray(new ItemStack[stacks.size()]);
 	}
-	
+
 	/**
 	 * @deprecated use getItemStacks(String name);
 	 */
