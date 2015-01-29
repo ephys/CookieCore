@@ -200,12 +200,12 @@ public class RegistryHelper {
 		String[] ranges = metadata.split(",");
 		try {
 			for (String range: ranges) {
-				if (range.length() == 1) {
+				try {
 					int meta = Integer.parseInt(range);
 					stacks.add(new ItemStack(item, 1, meta));
 
 					continue;
-				}
+				} catch(NumberFormatException ignore) {}
 
 				String[] subRanges = range.substring(1, range.length() - 1).split("-");
 				int lower = Integer.parseInt(subRanges[0]);
