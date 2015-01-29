@@ -198,28 +198,34 @@ public class RegistryHelper {
 
 		List<ItemStack> stacks = new ArrayList<>();
 		String[] ranges = metadata.split(",");
-		try {
-			for (String range: ranges) {
-				try {
+		for (String range: ranges) {
+			try {
+				if (range.startsWith("["))
+					range = range.substring(1, range.length() - 1);
+
+				if (range.contains("-")) {
+					String[] subRanges = range.split("-");
+					int lower = Integer.parseInt(subRanges[0]);
+					int upper = Integer.parseInt(subRanges[1]);
+
+					if (lower > upper) {
+						int tmp = upper;
+						upper = lower;
+						lower = tmp;
+					}
+
+					for (int meta = lower; meta <= upper; meta++) {
+						stacks.add(new ItemStack(item, 1, meta));
+					}
+				} else {
 					int meta = Integer.parseInt(range);
 					stacks.add(new ItemStack(item, 1, meta));
-
-					continue;
-				} catch(NumberFormatException ignore) {}
-
-				String[] subRanges = range.substring(1, range.length() - 1).split("-");
-				int lower = Integer.parseInt(subRanges[0]);
-				int upper = Integer.parseInt(subRanges[1]);
-
-				if (lower > upper) CookieCore.getLogger().error("Failed to parse metadata value " + metadata + ": invalid range " + range);
-				for (int meta = lower; meta <= upper; meta++) {
-					stacks.add(new ItemStack(item, 1, meta));
 				}
+			} catch (NumberFormatException e) {
+				System.out.println(metadata);
+				e.printStackTrace();
+				CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
 			}
-		} catch(NumberFormatException e) {
-			CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
-
-			return null;
 		}
 
 		return stacks.toArray(new ItemStack[stacks.size()]);
