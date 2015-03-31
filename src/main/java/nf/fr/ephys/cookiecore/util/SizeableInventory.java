@@ -88,8 +88,11 @@ public class SizeableInventory implements IInventory, IWritable {
 
 		ItemStack emptied = stacks[slot].splitStack(amount);
 
-		if (stacks[slot].stackSize <= 0)
+		if (stacks[slot].stackSize <= 0) {
 			setInventorySlotContents(slot, null);
+		}
+
+		markDirty();
 
 		return emptied;
 	}
@@ -99,6 +102,8 @@ public class SizeableInventory implements IInventory, IWritable {
 		ItemStack stack = stacks[slot];
 
 		setInventorySlotContents(slot, null);
+
+		markDirty();
 
 		return stack;
 	}

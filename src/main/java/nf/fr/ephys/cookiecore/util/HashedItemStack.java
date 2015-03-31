@@ -9,6 +9,10 @@ public class HashedItemStack {
 	private ItemStack itemStack;
 
 	public HashedItemStack(ItemStack itemStack) {
+		if (itemStack == null) {
+			throw new IllegalArgumentException("Trying to create an hash wrapper for an itemstack but given itemstack is null.");
+		}
+
 		this.itemStack = itemStack;
 	}
 
