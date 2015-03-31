@@ -16,7 +16,6 @@ import java.util.Arrays;
  */
 public class SizeableInventory implements IInventory, IWritable {
 	private int stackSize;
-
 	private ItemStack[] stacks;
 	private int nbStacks;
 
