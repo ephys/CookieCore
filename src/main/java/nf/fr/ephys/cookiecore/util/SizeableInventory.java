@@ -89,9 +89,9 @@ public class SizeableInventory implements IInventory, IWritable {
 
 		if (stacks[slot].stackSize <= 0) {
 			setInventorySlotContents(slot, null);
+		} else {
+			markDirty();
 		}
-
-		markDirty();
 
 		return emptied;
 	}
@@ -102,14 +102,14 @@ public class SizeableInventory implements IInventory, IWritable {
 
 		setInventorySlotContents(slot, null);
 
-		markDirty();
-
 		return stack;
 	}
 
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack stack) {
 		stacks[slot] = stack;
+
+		markDirty();
 	}
 
 	@Override
