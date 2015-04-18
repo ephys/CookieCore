@@ -6,20 +6,32 @@ import net.minecraftforge.fluids.*;
 import nf.fr.ephys.cookiecore.helpers.NBTHelper;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
+/**
+ * Implementation of the {@link IFluidHandler} and {@link IFluidBlock} interfaces.
+ * This tank can hold multiple types of liquids.
+ */
+public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank, Iterable<FluidStack> {
 	private ArrayList<FluidStack> stacks = new ArrayList<>();
 	private FluidTankInfo[] fluidTankInfos;
 
 	private int capacity;
 	private int totalFluidAmount = 0;
 
+	/**
+	 * Creates a fluid tank with a given capacity.
+	 * @param capacity The maximum capacity of the tank.
+	 */
 	public MultiFluidTank(int capacity) {
 		this.capacity = capacity;
 		updateFluidTankInfos();
 	}
 
-	public void updateFluidTankInfos() {
+	/**
+	 * Recreates the FluidTankInfo array.
+	 */
+	private void updateFluidTankInfos() {
 		fluidTankInfos = new FluidTankInfo[stacks.size() + 1];
 
 		for (int i = 0; i < stacks.size(); i++) {
@@ -113,6 +125,9 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 		updateFluidTankInfos();
 	}
 
+	/**
+	 * Returns the count of different fluids in the tank.
+	 */
 	public int getNbFluids() {
 		return stacks.size();
 	}
@@ -126,10 +141,16 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 		return stacks.size() == 0 ? null : stacks.get(0);
 	}
 
+	/**
+	 * Returns the amount of fluid existing in the tank.
+	 */
 	public int getFluidAmount() {
 		return totalFluidAmount;
 	}
 
+	/**
+	 * Returns the capacity of the tank.
+	 */
 	public int getCapacity() {
 		return capacity;
 	}
@@ -192,10 +213,19 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 		return drained;
 	}
 
+	/**
+	 * Sets the maximum capacity of the tank.
+	 * @param capacity The new capacity.
+	 */
 	public void setCapacity(int capacity) {
 		this.capacity = capacity;
 	}
 
+	/**
+	 * Moves a fluid in the tank.
+	 * @param fluid The fluid to move.
+	 * @param pos The new position of the fluid. The fluid itself is counted when calculating the positions.
+	 */
 	public void setStackPos(Fluid fluid, int pos) {
 		for (int i = 0; i < stacks.size(); i++) {
 			FluidStack stack = stacks.get(i);
@@ -210,5 +240,20 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank {
 				return;
 			}
 		}
+	}
+
+	@Override
+	public Iterator<FluidStack> iterator() {
+		return new Iterator<FluidStack>() {
+			@Override
+			public boolean hasNext() {
+				return false;
+			}
+
+			@Override
+			public FluidStack next() {
+				return null;
+			}
+		};
 	}
 }

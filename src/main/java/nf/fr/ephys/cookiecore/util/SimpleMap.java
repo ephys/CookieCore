@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Implementation of a {@link Map} using arrays instead of hashes.
+ */
 public class SimpleMap<K, V> implements Map<K, V> {
 	private SimpleSet<Entry<K, V>> data;
 
