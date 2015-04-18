@@ -244,16 +244,6 @@ public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank, Ite
 
 	@Override
 	public Iterator<FluidStack> iterator() {
-		return new Iterator<FluidStack>() {
-			@Override
-			public boolean hasNext() {
-				return false;
-			}
-
-			@Override
-			public FluidStack next() {
-				return null;
-			}
-		};
+		return stacks.iterator();
 	}
 }
