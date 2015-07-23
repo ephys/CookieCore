@@ -2,248 +2,264 @@ package nf.fr.ephys.cookiecore.util;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.*;
-import nf.fr.ephys.cookiecore.helpers.NBTHelper;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTankInfo;
+import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.IFluidTank;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import nf.fr.ephys.cookiecore.helpers.NBTHelper;
+
 /**
- * Implementation of the {@link IFluidHandler} and {@link IFluidBlock} interfaces.
- * This tank can hold multiple types of liquids.
+ * Implementation of the {@link IFluidHandler} and {@link IFluidBlock} interfaces. This tank can
+ * hold multiple types of liquids.
  */
 public class MultiFluidTank implements IFluidHandler, IWritable, IFluidTank, Iterable<FluidStack> {
-	private ArrayList<FluidStack> stacks = new ArrayList<>();
-	private FluidTankInfo[] fluidTankInfos;
 
-	private int capacity;
-	private int totalFluidAmount = 0;
+  private ArrayList<FluidStack> stacks = new ArrayList<>();
+  private FluidTankInfo[] fluidTankInfos;
 
-	/**
-	 * Creates a fluid tank with a given capacity.
-	 * @param capacity The maximum capacity of the tank.
-	 */
-	public MultiFluidTank(int capacity) {
-		this.capacity = capacity;
-		updateFluidTankInfos();
-	}
+  private int capacity;
+  private int totalFluidAmount = 0;
 
-	/**
-	 * Recreates the FluidTankInfo array.
-	 */
-	private void updateFluidTankInfos() {
-		fluidTankInfos = new FluidTankInfo[stacks.size() + 1];
+  /**
+   * Creates a fluid tank with a given capacity.
+   *
+   * @param capacity The maximum capacity of the tank.
+   */
+  public MultiFluidTank(int capacity) {
+    this.capacity = capacity;
+    updateFluidTankInfos();
+  }
 
-		for (int i = 0; i < stacks.size(); i++) {
-			fluidTankInfos[i] = new FluidTankInfo(stacks.get(i), stacks.get(i).amount);
-		}
+  /**
+   * Recreates the FluidTankInfo array.
+   */
+  private void updateFluidTankInfos() {
+    fluidTankInfos = new FluidTankInfo[stacks.size() + 1];
 
-		fluidTankInfos[stacks.size()] = new FluidTankInfo(null, capacity - totalFluidAmount);
-	}
+    for (int i = 0; i < stacks.size(); i++) {
+      fluidTankInfos[i] = new FluidTankInfo(stacks.get(i), stacks.get(i).amount);
+    }
 
-	@Override
-	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-		return fill(resource, doFill);
-	}
+    fluidTankInfos[stacks.size()] = new FluidTankInfo(null, capacity - totalFluidAmount);
+  }
 
-	@Override
-	public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
-		for (int i = 0; i < stacks.size(); i++) {
-			FluidStack stack = stacks.get(i);
+  @Override
+  public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
+    return fill(resource, doFill);
+  }
 
-			if (stack.isFluidEqual(resource)) {
-				int toDrain = Math.min(resource.amount, stack.amount);
+  @Override
+  public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
+    for (int i = 0; i < stacks.size(); i++) {
+      FluidStack stack = stacks.get(i);
 
-				FluidStack drained = stack.copy();
+      if (stack.isFluidEqual(resource)) {
+        int toDrain = Math.min(resource.amount, stack.amount);
 
-				drained.amount = toDrain;
+        FluidStack drained = stack.copy();
 
-				if (doDrain) {
-					stack.amount -= toDrain;
-					totalFluidAmount -= toDrain;
+        drained.amount = toDrain;
 
-					if (stack.amount <= 0)
-						stacks.remove(i);
+        if (doDrain) {
+          stack.amount -= toDrain;
+          totalFluidAmount -= toDrain;
 
-					updateFluidTankInfos();
-				}
+          if (stack.amount <= 0) {
+            stacks.remove(i);
+          }
 
-				return drained;
-			}
-		}
+          updateFluidTankInfos();
+        }
 
-		return null;
-	}
+        return drained;
+      }
+    }
 
-	@Override
-	public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		return drain(maxDrain, doDrain);
-	}
+    return null;
+  }
 
-	@Override
-	public boolean canFill(ForgeDirection from, Fluid fluid) {
-		return true;
-	}
+  @Override
+  public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
+    return drain(maxDrain, doDrain);
+  }
 
-	@Override
-	public boolean canDrain(ForgeDirection from, Fluid fluid) {
-		return true;
-	}
+  @Override
+  public boolean canFill(ForgeDirection from, Fluid fluid) {
+    return true;
+  }
 
-	@Override
-	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-		return fluidTankInfos;
-	}
+  @Override
+  public boolean canDrain(ForgeDirection from, Fluid fluid) {
+    return true;
+  }
 
-	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		nbt.setInteger("nbFluids", stacks.size());
-		nbt.setInteger("capacity", capacity);
+  @Override
+  public FluidTankInfo[] getTankInfo(ForgeDirection from) {
+    return fluidTankInfos;
+  }
 
-		for (int i = 0; i < stacks.size(); i++) {
-			NBTHelper.setWritable(nbt, "f" + i, stacks.get(i));
-		}
-	}
+  @Override
+  public void writeToNBT(NBTTagCompound nbt) {
+    nbt.setInteger("nbFluids", stacks.size());
+    nbt.setInteger("capacity", capacity);
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		totalFluidAmount = 0;
-		capacity = nbt.getInteger("capacity");
+    for (int i = 0; i < stacks.size(); i++) {
+      NBTHelper.setWritable(nbt, "f" + i, stacks.get(i));
+    }
+  }
 
-		int nbFluids = nbt.getInteger("nbFluids");
-		stacks = new ArrayList<>(nbFluids);
+  @Override
+  public void readFromNBT(NBTTagCompound nbt) {
+    totalFluidAmount = 0;
+    capacity = nbt.getInteger("capacity");
 
-		for (int i = 0; i < nbFluids; i++) {
-			FluidStack fluid = NBTHelper.getFluidStack(nbt, "f" + i);
+    int nbFluids = nbt.getInteger("nbFluids");
+    stacks = new ArrayList<>(nbFluids);
 
-			if (fluid != null) {
-				totalFluidAmount += fluid.amount;
-				stacks.add(i, fluid);
-			}
-		}
+    for (int i = 0; i < nbFluids; i++) {
+      FluidStack fluid = NBTHelper.getFluidStack(nbt, "f" + i);
 
-		updateFluidTankInfos();
-	}
+      if (fluid != null) {
+        totalFluidAmount += fluid.amount;
+        stacks.add(i, fluid);
+      }
+    }
 
-	/**
-	 * Returns the count of different fluids in the tank.
-	 */
-	public int getNbFluids() {
-		return stacks.size();
-	}
+    updateFluidTankInfos();
+  }
 
-	public FluidStack getFluid(int i) {
-		return stacks.get(i);
-	}
+  /**
+   * Returns the count of different fluids in the tank.
+   */
+  public int getNbFluids() {
+    return stacks.size();
+  }
 
-	@Override
-	public FluidStack getFluid() {
-		return stacks.size() == 0 ? null : stacks.get(0);
-	}
+  public FluidStack getFluid(int i) {
+    return stacks.get(i);
+  }
 
-	/**
-	 * Returns the amount of fluid existing in the tank.
-	 */
-	public int getFluidAmount() {
-		return totalFluidAmount;
-	}
+  @Override
+  public FluidStack getFluid() {
+    return stacks.size() == 0 ? null : stacks.get(0);
+  }
 
-	/**
-	 * Returns the capacity of the tank.
-	 */
-	public int getCapacity() {
-		return capacity;
-	}
+  /**
+   * Returns the amount of fluid existing in the tank.
+   */
+  public int getFluidAmount() {
+    return totalFluidAmount;
+  }
 
-	@Override
-	public FluidTankInfo getInfo() {
-		return fluidTankInfos[0];
-	}
+  /**
+   * Returns the capacity of the tank.
+   */
+  public int getCapacity() {
+    return capacity;
+  }
 
-	@Override
-	public int fill(FluidStack resource, boolean doFill) {
-		int canFill = Math.min(capacity - totalFluidAmount, resource.amount);
+  @Override
+  public FluidTankInfo getInfo() {
+    return fluidTankInfos[0];
+  }
 
-		if (doFill) {
-			FluidStack stackToFill = null;
+  @Override
+  public int fill(FluidStack resource, boolean doFill) {
+    int canFill = Math.min(capacity - totalFluidAmount, resource.amount);
 
-			for (FluidStack stack : stacks) {
-				if (stack.isFluidEqual(resource)) {
-					stackToFill = stack;
-					break;
-				}
-			}
+    if (doFill) {
+      FluidStack stackToFill = null;
 
-			if (stackToFill == null) {
-				stacks.add(new FluidStack(resource.fluidID, canFill, resource.tag));
-			} else {
-				stackToFill.amount += canFill;
-			}
+      for (FluidStack stack : stacks) {
+        if (stack.isFluidEqual(resource)) {
+          stackToFill = stack;
+          break;
+        }
+      }
 
-			totalFluidAmount += canFill;
+      if (stackToFill == null) {
+        stacks.add(new FluidStack(resource, canFill));
+      } else {
+        stackToFill.amount += canFill;
+      }
 
-			updateFluidTankInfos();
-		}
+      totalFluidAmount += canFill;
 
-		return canFill;
-	}
+      updateFluidTankInfos();
+    }
 
-	@Override
-	public FluidStack drain(int maxDrain, boolean doDrain) {
-		if (stacks.isEmpty()) return null;
+    return canFill;
+  }
 
-		FluidStack stack = stacks.get(0);
+  @Override
+  public FluidStack drain(int maxDrain, boolean doDrain) {
+    if (stacks.isEmpty()) {
+      return null;
+    }
 
-		int toDrain = Math.min(maxDrain, stack.amount);
+    FluidStack stack = stacks.get(0);
 
-		FluidStack drained = stack.copy();
+    int toDrain = Math.min(maxDrain, stack.amount);
 
-		drained.amount = toDrain;
+    FluidStack drained = stack.copy();
 
-		if (doDrain) {
-			stack.amount -= toDrain;
-			totalFluidAmount -= toDrain;
+    drained.amount = toDrain;
 
-			if (stack.amount <= 0)
-				stacks.remove(0);
+    if (doDrain) {
+      stack.amount -= toDrain;
+      totalFluidAmount -= toDrain;
 
-			updateFluidTankInfos();
-		}
+      if (stack.amount <= 0) {
+        stacks.remove(0);
+      }
 
-		return drained;
-	}
+      updateFluidTankInfos();
+    }
 
-	/**
-	 * Sets the maximum capacity of the tank.
-	 * @param capacity The new capacity.
-	 */
-	public void setCapacity(int capacity) {
-		this.capacity = capacity;
-	}
+    return drained;
+  }
 
-	/**
-	 * Moves a fluid in the tank.
-	 * @param fluid The fluid to move.
-	 * @param pos The new position of the fluid. The fluid itself is counted when calculating the positions.
-	 */
-	public void setStackPos(Fluid fluid, int pos) {
-		for (int i = 0; i < stacks.size(); i++) {
-			FluidStack stack = stacks.get(i);
-			if (stack.getFluid().equals(fluid)) {
-				stacks.remove(i);
+  /**
+   * Sets the maximum capacity of the tank.
+   *
+   * @param capacity The new capacity.
+   */
+  public void setCapacity(int capacity) {
+    this.capacity = capacity;
+  }
 
-				if (pos > i)
-					pos--;
+  /**
+   * Moves a fluid in the tank.
+   *
+   * @param fluid The fluid to move.
+   * @param pos   The new position of the fluid. The fluid itself is counted when calculating the
+   *              positions.
+   */
+  public void setStackPos(Fluid fluid, int pos) {
+    for (int i = 0; i < stacks.size(); i++) {
+      FluidStack stack = stacks.get(i);
+      if (stack.getFluid().equals(fluid)) {
+        stacks.remove(i);
 
-				stacks.add(pos, stack);
+        if (pos > i) {
+          pos--;
+        }
 
-				return;
-			}
-		}
-	}
+        stacks.add(pos, stack);
 
-	@Override
-	public Iterator<FluidStack> iterator() {
-		return stacks.iterator();
-	}
+        return;
+      }
+    }
+  }
+
+  @Override
+  public Iterator<FluidStack> iterator() {
+    return stacks.iterator();
+  }
 }

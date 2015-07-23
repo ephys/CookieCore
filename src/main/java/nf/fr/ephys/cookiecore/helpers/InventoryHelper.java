@@ -14,194 +14,233 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
+import javax.swing.text.html.parser.Entity;
+
+import nf.fr.ephys.cookiecore.util.IFilter;
+
 public class InventoryHelper {
-	public static int[] getUnSidedInventorySlots(IInventory inventory) {
-		int[] slots = new int[inventory.getSizeInventory()];
 
-		for (int i = 0; i < slots.length; i++) {
-			slots[i] = i;
-		}
+  public static int[] getUnSidedInventorySlots(IInventory inventory) {
+    int[] slots = new int[inventory.getSizeInventory()];
 
-		return slots;
-	}
+    for (int i = 0; i < slots.length; i++) {
+      slots[i] = i;
+    }
 
-	public static boolean insertItem(IInventory inventory, ItemStack toInsert) {
-		return insertItem(inventory, getUnSidedInventorySlots(inventory), toInsert);
-	}
+    return slots;
+  }
 
-	public static boolean insertItem(IInventory inventory, ItemStack toInsert, int side) {
-		if (inventory instanceof ISidedInventory) {
-			return insertItem(inventory, ((ISidedInventory) inventory).getAccessibleSlotsFromSide(side), toInsert);
-		}
+  public static boolean insertItem(IInventory inventory, ItemStack toInsert) {
+    return insertItem(inventory, getUnSidedInventorySlots(inventory), toInsert);
+  }
 
-		return insertItem(inventory, toInsert);
-	}
+  public static boolean insertItem(IInventory inventory, ItemStack toInsert, int side) {
+    if (inventory instanceof ISidedInventory) {
+      return insertItem(inventory, ((ISidedInventory) inventory).getAccessibleSlotsFromSide(side),
+                        toInsert);
+    }
 
-	public static boolean insertItem(IInventory inventory, int[] slots, ItemStack toInsert) {
-		int[] insertBySlot = new int[slots.length];
-		int totalInserted = 0;
+    return insertItem(inventory, toInsert);
+  }
 
-		int i;
-		for (i = 0; i < slots.length && totalInserted < toInsert.stackSize; i++) {
-			if (!inventory.isItemValidForSlot(slots[i], toInsert)) continue;
+  public static boolean insertItem(IInventory inventory, int[] slots, ItemStack toInsert) {
+    int[] insertBySlot = new int[slots.length];
+    int totalInserted = 0;
 
-			ItemStack stack = inventory.getStackInSlot(slots[i]);
+    int i;
+    for (i = 0; i < slots.length && totalInserted < toInsert.stackSize; i++) {
+      if (!inventory.isItemValidForSlot(slots[i], toInsert)) {
+        continue;
+      }
 
-			if (stack != null && !stack.isItemEqual(toInsert)) continue;
+      ItemStack stack = inventory.getStackInSlot(slots[i]);
 
-			int emptyness = stack == null ? inventory.getInventoryStackLimit() : inventory.getInventoryStackLimit() - stack.stackSize;
+      if (stack != null && !stack.isItemEqual(toInsert)) {
+        continue;
+      }
 
-			if (emptyness > toInsert.getMaxStackSize())
-				emptyness = toInsert.getMaxStackSize();
+      int
+          emptyness =
+          stack == null ? inventory.getInventoryStackLimit()
+                        : inventory.getInventoryStackLimit() - stack.stackSize;
 
-			int inserted = Math.min(emptyness, toInsert.stackSize - totalInserted);
+      if (emptyness > toInsert.getMaxStackSize()) {
+        emptyness = toInsert.getMaxStackSize();
+      }
 
-			insertBySlot[i] = inserted;
-			totalInserted += inserted;
-		}
+      int inserted = Math.min(emptyness, toInsert.stackSize - totalInserted);
 
-		if (totalInserted != toInsert.stackSize) return false;
+      insertBySlot[i] = inserted;
+      totalInserted += inserted;
+    }
 
-		for (int j = 0; j < i; j++) {
-			ItemStack stack = inventory.getStackInSlot(slots[j]);
+    if (totalInserted != toInsert.stackSize) {
+      return false;
+    }
 
-			if (stack == null) {
-				stack = toInsert.copy();
-				stack.stackSize = 0;
-			}
+    for (int j = 0; j < i; j++) {
+      ItemStack stack = inventory.getStackInSlot(slots[j]);
 
-			stack.stackSize += insertBySlot[j];
+      if (stack == null) {
+        stack = toInsert.copy();
+        stack.stackSize = 0;
+      }
 
-			inventory.setInventorySlotContents(slots[j], stack);
-		}
+      stack.stackSize += insertBySlot[j];
 
-		return true;
-	}
+      inventory.setInventorySlotContents(slots[j], stack);
+    }
 
-	public static void dropContents(IInventory te, World world, int x, int y, int z) {
-		for (int i = 0; i < te.getSizeInventory(); ++i) {
-			ItemStack itemstack = te.getStackInSlotOnClosing(i);
+    return true;
+  }
 
-			dropItem(itemstack, world, x, y, z);
-		}
-	}
+  public static void dropContents(IInventory te, World world, int x, int y, int z) {
+    for (int i = 0; i < te.getSizeInventory(); ++i) {
+      ItemStack itemstack = te.getStackInSlotOnClosing(i);
 
-	public static void dropItem(ItemStack itemstack, World world, double x, double y, double z) {
-		if (itemstack != null) {
-			float randX = MathHelper.random.nextFloat() * 0.8F + 0.1F;
-			float randY = MathHelper.random.nextFloat() * 0.8F + 0.1F;
-			float randZ = MathHelper.random.nextFloat() * 0.8F + 0.1F;
+      dropItem(itemstack, world, x, y, z);
+    }
+  }
 
-			while (itemstack.stackSize > 0) {
-				int k1 = MathHelper.random.nextInt(21) + 10;
+  public static void dropItem(ItemStack itemstack, World world, double x, double y, double z) {
+    if (itemstack != null) {
+      float randX = MathHelper.random.nextFloat() * 0.8F + 0.1F;
+      float randY = MathHelper.random.nextFloat() * 0.8F + 0.1F;
+      float randZ = MathHelper.random.nextFloat() * 0.8F + 0.1F;
 
-				if (k1 > itemstack.stackSize) {
-					k1 = itemstack.stackSize;
-				}
+      while (itemstack.stackSize > 0) {
+        int k1 = MathHelper.random.nextInt(21) + 10;
 
-				itemstack.stackSize -= k1;
-				EntityItem entityitem = new EntityItem(world,
-						(double) ((float) x + randX),
-						(double) ((float) y + randY),
-						(double) ((float) z + randZ),
-						new ItemStack(itemstack.getItem(), k1, itemstack.getItemDamage())
-				);
+        if (k1 > itemstack.stackSize) {
+          k1 = itemstack.stackSize;
+        }
 
-				float f3 = 0.05F;
-				entityitem.motionX = (double) ((float) MathHelper.random.nextGaussian() * f3);
-				entityitem.motionY = (double) ((float) MathHelper.random.nextGaussian() * f3 + 0.2F);
-				entityitem.motionZ = (double) ((float) MathHelper.random.nextGaussian() * f3);
+        itemstack.stackSize -= k1;
+        EntityItem entityitem = new EntityItem(world,
+                                               (double) ((float) x + randX),
+                                               (double) ((float) y + randY),
+                                               (double) ((float) z + randZ),
+                                               new ItemStack(itemstack.getItem(), k1,
+                                                             itemstack.getItemDamage())
+        );
 
-				if (itemstack.hasTagCompound()) {
-					entityitem.getEntityItem().setTagCompound(
-							(NBTTagCompound) itemstack.getTagCompound()
-									.copy());
-				}
+        float f3 = 0.05F;
+        entityitem.motionX = (double) ((float) MathHelper.random.nextGaussian() * f3);
+        entityitem.motionY = (double) ((float) MathHelper.random.nextGaussian() * f3 + 0.2F);
+        entityitem.motionZ = (double) ((float) MathHelper.random.nextGaussian() * f3);
 
-				world.spawnEntityInWorld(entityitem);
-			}
-		}
-	}
+        if (itemstack.hasTagCompound()) {
+          entityitem.getEntityItem().setTagCompound(
+              (NBTTagCompound) itemstack.getTagCompound()
+                  .copy());
+        }
 
-	public static void dropItem(ItemStack itemstack, EntityPlayer player) {
-		dropItem(itemstack, player.worldObj, player.posX, player.posY, player.posZ);
-	}
+        world.spawnEntityInWorld(entityitem);
+      }
+    }
+  }
 
-	public static IInventory getInventoryAt(World world, double x, double y, double z) {
-		IInventory inventory = getBlockInventoryAt(world, (int) x, (int) y, (int) z);
+  public static void dropItem(ItemStack itemstack, EntityPlayer player) {
+    dropItem(itemstack, player.worldObj, player.posX, player.posY, player.posZ);
+  }
 
-		if (inventory == null)
-			inventory = getEntityInventoryAt(world, x, y, z);
+  public static IInventory getInventoryAt(World world, double x, double y, double z) {
+    IInventory inventory = getBlockInventoryAt(world, (int) x, (int) y, (int) z);
 
-		return inventory;
-	}
+    if (inventory == null) {
+      inventory = getEntityInventoryAt(world, x, y, z);
+    }
 
-	public static IInventory getBlockInventoryAt(World world, int x, int y, int z) {
-		// special mojang bad code hotfix yay
-		Block block = world.getBlock(x, y, z);
-		if (world.getBlock(x, y, z) instanceof BlockChest) {
-			IInventory chestInventory = ((BlockChest) block).func_149951_m(world, x, y, z);
+    return inventory;
+  }
 
-			if (chestInventory != null) return chestInventory;
-		}
+  public static IInventory getBlockInventoryAt(World world, int x, int y, int z) {
+    // special mojang bad code hotfix yay
+    Block block = world.getBlock(x, y, z);
+    if (world.getBlock(x, y, z) instanceof BlockChest) {
+      IInventory chestInventory = ((BlockChest) block).func_149951_m(world, x, y, z);
 
-		TileEntity te = world.getTileEntity(x, y, z);
+      if (chestInventory != null) {
+        return chestInventory;
+      }
+    }
 
-		if (te instanceof IInventory) {
-			return (IInventory) te;
-		}
+    TileEntity te = world.getTileEntity(x, y, z);
 
-		return null;
-	}
+    if (te instanceof IInventory) {
+      return (IInventory) te;
+    }
 
-	// todo: check if the AABB is valid
-	@SuppressWarnings("unchecked")
-	public static IInventory getEntityInventoryAt(World world, double x, double y, double z) {
-		List<IInventory> entities = world.selectEntitiesWithinAABB(Entity.class, AxisAlignedBB.getBoundingBox(x, y, z, x, y, z), IEntitySelector.selectInventories);
+    return null;
+  }
 
-		return (IInventory) MathHelper.getRandom(entities);
-	}
+  // todo: check if the AABB is valid
+  @SuppressWarnings("unchecked")
+  public static IInventory getEntityInventoryAt(World world, double x, double y, double z) {
+    List<IInventory> entities = world.selectEntitiesWithinAABB(Entity.class,
+                                                               AxisAlignedBB
+                                                                   .getBoundingBox(x, y,
+                                                                                   z, x,
+                                                                                   y,
+                                                                                   z),
+                                                               IEntitySelector.selectInventories);
 
-	public static boolean isBlockEqual(ItemStack stack, World world, int x, int y, int z) {
-		return world.getBlock(x, y, z).equals(Block.getBlockFromItem(stack.getItem())) && world.getBlockMetadata(x, y, z) == stack.getItemDamage();
-	}
+    return (IInventory) MathHelper.getRandom(entities);
+  }
 
-	public static boolean isBlockEqual(String oredictName, World world, int x, int y, int z) {
-		int needle = OreDictionary.getOreID(oredictName);
+  public static boolean isBlockEqual(ItemStack stack, World world, int x, int y, int z) {
+    return world.getBlock(x, y, z).equals(Block.getBlockFromItem(stack.getItem()))
+           && world.getBlockMetadata(x, y, z) == stack.getItemDamage();
+  }
 
-		ItemStack stack = new ItemStack(world.getBlock(x, y, z), 1, world.getBlockMetadata(x, y, z));
+  public static boolean isBlockEqual(String oredictName, World world, int x, int y, int z) {
+    int needle = OreDictionary.getOreID(oredictName);
 
-		int[] haystack = OreDictionary.getOreIDs(stack);
+    ItemStack stack = new ItemStack(world.getBlock(x, y, z), 1, world.getBlockMetadata(x, y, z));
 
-		for (int id : haystack) {
-			if (id == needle) return true;
-		}
+    int[] haystack = OreDictionary.getOreIDs(stack);
 
-		return false;
-	}
+    for (int id : haystack) {
+      if (id == needle) {
+        return true;
+      }
+    }
 
-	public static boolean itemIsOre(ItemStack stack) {
-		int[] ids = OreDictionary.getOreIDs(stack);
+    return false;
+  }
 
-		for (int id : ids) {
-			if (OreDictionary.getOreName(id).startsWith("ore"))
-				return true;
-		}
+  public static boolean itemIsOre(ItemStack stack) {
+    int[] ids = OreDictionary.getOreIDs(stack);
 
-		return false;
-	}
+    for (int id : ids) {
+      if (OreDictionary.getOreName(id).startsWith("ore")) {
+        return true;
+      }
+    }
 
-	public static void ensureOreIsRegistered(String oreName, ItemStack is) {
-		int ids[] = OreDictionary.getOreIDs(is);
+    return false;
+  }
 
-		for (int id : ids) {
-			if (OreDictionary.getOreName(id).equals(oreName))
-				return;
-		}
+  public static void ensureOreIsRegistered(String oreName, ItemStack is) {
+    int ids[] = OreDictionary.getOreIDs(is);
 
-		OreDictionary.registerOre(oreName, is);
-	}
+    for (int id : ids) {
+      if (OreDictionary.getOreName(id).equals(oreName)) {
+        return;
+      }
+    }
+
+    OreDictionary.registerOre(oreName, is);
+  }
+
+  /**
+   * @see EntityHelper#getClosestEntity(Class, World, double, double, double, float, IFilter)
+   */
+  @SuppressWarnings("unchecked")
+  public static EntityItem getClosestItem(World world, double x, double y, double z, float range,
+                                          IFilter<EntityItem> filter) {
+    return EntityHelper.getClosestEntity(EntityItem.class, world, x, y, z, range, filter);
+  }
 }

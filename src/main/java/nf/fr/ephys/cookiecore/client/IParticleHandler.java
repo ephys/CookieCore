@@ -4,15 +4,17 @@ import net.minecraft.client.particle.EntityFX;
 import net.minecraft.world.World;
 
 public interface IParticleHandler {
-	public EntityFX getParticle(int id, World world, double x, double y, double z, double velx, double vely, double velz);
 
-	/**
-	 * Gets the distance after which the particle will not get rendered
-	 *
-	 * @param id    The particle id
-	 * @return      The render distance, usually 16.
-	 */
-	public double getRenderDistance(int id);
+  EntityFX getParticle(int id, World world, double x, double y, double z, double velx,
+                              double vely, double velz);
 
-	public int getMaxParticleSetting(int id);
+  /**
+   * Gets the distance after which the particle will not get rendered
+   *
+   * @param id The particle id
+   * @return The render distance, usually 16.
+   */
+  double getRenderDistance(int id);
+
+  int getMaxParticleSetting(int id);
 }

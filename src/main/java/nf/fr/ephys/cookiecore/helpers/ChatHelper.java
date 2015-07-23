@@ -10,57 +10,62 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 public class ChatHelper {
-	public static void sendChatMessage(ICommandSender user, String message) {
-		if (user.getEntityWorld() == null || !user.getEntityWorld().isRemote)
-			user.addChatMessage(new ChatComponentText(message));
-	}
 
-	private static final String[] sides = {"down", "up", "north", "south", "west", "east"};
-	public static String blockSideName(int side) {
-		return StatCollector.translateToLocal("side." + sides[side]);
-	}
+  public static void sendChatMessage(ICommandSender user, String message) {
+    if (user.getEntityWorld() == null || !user.getEntityWorld().isRemote) {
+      user.addChatMessage(new ChatComponentText(message));
+    }
+  }
 
-	public static String getDisplayName(TileEntity te) {
-		if (te == null) return "null";
+  private static final String[] sides = {"down", "up", "north", "south", "west", "east"};
 
-		return getDisplayName(te.getBlockType(), te.getBlockMetadata());
-	}
+  public static String blockSideName(int side) {
+    return StatCollector.translateToLocal("side." + sides[side]);
+  }
 
-	public static String getDisplayName(Block block) {
-		return getDisplayName(block, 0);
-	}
+  public static String getDisplayName(TileEntity te) {
+    if (te == null) {
+      return "null";
+    }
 
-	public static String getDisplayName(Block block, int metadata) {
-		return new ItemStack(block, 1, metadata).getDisplayName();
-	}
+    return getDisplayName(te.getBlockType(), te.getBlockMetadata());
+  }
 
-	public static String getDisplayName(Fluid fluid) {
-		return getDisplayName(new FluidStack(fluid, 1000));
-	}
+  public static String getDisplayName(Block block) {
+    return getDisplayName(block, 0);
+  }
 
-	public static String getDisplayName(FluidStack fluidStack) {
-		Fluid fluid = fluidStack.getFluid();
+  public static String getDisplayName(Block block, int metadata) {
+    return new ItemStack(block, 1, metadata).getDisplayName();
+  }
 
-		String name = fluid.getLocalizedName(fluidStack);
+  public static String getDisplayName(Fluid fluid) {
+    return getDisplayName(new FluidStack(fluid, 1000));
+  }
 
-		if (fluid.canBePlacedInWorld() && name.equals(fluid.getUnlocalizedName())) {
-			return getDisplayName(fluid.getBlock());
-		}
+  public static String getDisplayName(FluidStack fluidStack) {
+    Fluid fluid = fluidStack.getFluid();
 
-		return name;
-	}
+    String name = fluid.getLocalizedName(fluidStack);
 
-	public static String formatFluidValue(boolean autoUnit, int amount) {
-		if (!autoUnit || amount < 1000) {
-			return amount + "mB";
-		}
+    if (fluid.canBePlacedInWorld() && name.equals(fluid.getUnlocalizedName())) {
+      return getDisplayName(fluid.getBlock());
+    }
 
-		double converted = (double)amount / 1000;
-		if (converted < 1000) {
-			return MathHelper.round(converted, 3) + "B";
-		}
+    return name;
+  }
 
-		converted = converted / 1000;
-		return MathHelper.round(converted, 3) + "kB";
-	}
+  public static String formatFluidValue(boolean autoUnit, int amount) {
+    if (!autoUnit || amount < 1000) {
+      return amount + "mB";
+    }
+
+    double converted = (double) amount / 1000;
+    if (converted < 1000) {
+      return MathHelper.round(converted, 3) + "B";
+    }
+
+    converted = converted / 1000;
+    return MathHelper.round(converted, 3) + "kB";
+  }
 }

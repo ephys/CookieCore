@@ -1,87 +1,78 @@
 package nf.fr.ephys.cookiecore.common;
 
 import com.google.common.eventbus.EventBus;
+
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.gen.FlatLayerInfo;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.LoadController;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.ModMetadata;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeGenBase;
-import net.minecraft.world.gen.FlatLayerInfo;
-import nf.fr.ephys.cookiecore.common.registryUtil.FlatPresetRegistry;
+import nf.fr.ephys.cookiecore.client.registry.FlatPresetRegistry;
 import nf.fr.ephys.cookiecore.helpers.DebugHelper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-@Mod(modid = CookieCore.MODID, version = CookieCore.VERSION, name = CookieCore.MODNAME)
+@Mod(modid = CookieCore.MODID, version = CookieCore.VERSION, name = CookieCore.MODNAME, dependencies = "after:Forge@[10.13.4.1448,)")
 public class CookieCore extends DummyModContainer {
-	public static final String MODNAME = "Cookie Core";
-    public static final String MODID = "cookiecore";
-    public static final String VERSION = "1.3.1";
 
-	@Mod.Instance(MODID)
-	public static CookieCore instance;
+  public static final String MODNAME = "Cookie Core";
+  public static final String MODID = "cookiecore";
+  public static final String VERSION = "1.4.0";
 
-	private Logger logger = LogManager.getLogger(getModId());
+  @Mod.Instance(MODID)
+  public static CookieCore instance;
 
-	public CookieCore() {
-		super(new ModMetadata());
+  private Logger logger = LogManager.getLogger(getModId());
 
-		ModMetadata meta = this.getMetadata();
+  public CookieCore() {
+    super(new ModMetadata());
 
-		meta.authorList.add("EphysPotato");
-		meta.description = "Lib for my mods.";
-		meta.modId = MODID;
-		meta.version = VERSION;
-		meta.name = MODNAME;
-	}
+    ModMetadata meta = this.getMetadata();
 
-	@EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
-		// this is from ExU, yup yup (sorry Tema)
+    meta.authorList.add("EphysPotato");
+    meta.description = "Lib for my mods.";
+    meta.modId = MODID;
+    meta.version = VERSION;
+    meta.name = MODNAME;
+  }
 
-		try {
-			World.class.getMethod("getBlock", new Class[] {Integer.TYPE, Integer.TYPE, Integer.TYPE});
-			DebugHelper.debug = true;
+  @EventHandler
+  public void postInit(FMLPostInitializationEvent event) {
+    if (event.getSide().equals(Side.CLIENT)) {
+      if (DebugHelper.debug) {
+        // remove unwanted presets in my test worlds
+        FlatPresetRegistry.removeByName("Classic Flat");
+        FlatPresetRegistry.removeByName("Tunnelers' Dream");
+        FlatPresetRegistry.removeByName("Water World");
+        FlatPresetRegistry.removeByName("Overworld");
+        FlatPresetRegistry.removeByName("Snowy Kingdom");
+        FlatPresetRegistry.removeByName("Bottomless Pit");
+        FlatPresetRegistry.removeByName("Desert");
+      }
 
-			logger.info("Dev environnement detected");
-		} catch (Exception e) {
-			DebugHelper.debug = false;
-		}
-	}
+      // add my own presets
+      FlatPresetRegistry.addPresetAt(0, FlatPresetRegistry
+          .buildPreset("Cookie Realmn", Item.getItemFromBlock(Blocks.stained_hardened_clay),
+                       BiomeGenBase.mushroomIsland, null,
+                       new FlatLayerInfo[]{new FlatLayerInfo(63, Blocks.stained_hardened_clay),
+                                           new FlatLayerInfo(1, Blocks.bedrock)}));
+    }
+  }
 
-	@EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-		if (event.getSide().equals(Side.CLIENT)) {
-			if (DebugHelper.debug) {
-				// remove unwanted presets in my test worlds
+  public static Logger getLogger() {
+    return instance.logger;
+  }
 
-				FlatPresetRegistry.removeByName("Classic Flat");
-				FlatPresetRegistry.removeByName("Tunnelers' Dream");
-				FlatPresetRegistry.removeByName("Water World");
-				FlatPresetRegistry.removeByName("Overworld");
-				FlatPresetRegistry.removeByName("Snowy Kingdom");
-				FlatPresetRegistry.removeByName("Bottomless Pit");
-				FlatPresetRegistry.removeByName("Desert");
-			}
-
-			// add my own presets
-			FlatPresetRegistry.addPresetAt(0, FlatPresetRegistry.buildPreset("Cookie Realmn", Item.getItemFromBlock(Blocks.stained_hardened_clay), BiomeGenBase.mushroomIsland, null, new FlatLayerInfo[] {new FlatLayerInfo(63, Blocks.stained_hardened_clay), new FlatLayerInfo(1, Blocks.bedrock)}));
-		}
-	}
-
-	public static Logger getLogger() {
-		return instance.logger;
-	}
-
-	@Override
-	public boolean registerBus(EventBus bus, LoadController controller) {
-		return true;
-	}
+  @Override
+  public boolean registerBus(EventBus bus, LoadController controller) {
+    return true;
+  }
 }

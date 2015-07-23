@@ -8,157 +8,167 @@ import java.util.Set;
  * Implementation of a {@link Map} using arrays instead of hashes.
  */
 public class SimpleMap<K, V> implements Map<K, V> {
-	private SimpleSet<Entry<K, V>> data;
 
-	public SimpleMap() {
-		this(10);
-	}
+  private SimpleSet<Entry<K, V>> data;
 
-	public SimpleMap(int size) {
-		data = new SimpleSet<>(size);
-	}
+  public SimpleMap() {
+    this(10);
+  }
 
-	@Override
-	public int size() {
-		return data.size();
-	}
+  public SimpleMap(int size) {
+    data = new SimpleSet<>(size);
+  }
 
-	@Override
-	public boolean isEmpty() {
-		return size() == 0;
-	}
+  @Override
+  public int size() {
+    return data.size();
+  }
 
-	@Override
-	public boolean containsKey(Object key) {
-		for (Entry<K, V> entry : data) {
-			if (entry.getKey().equals(key)) return true;
-		}
+  @Override
+  public boolean isEmpty() {
+    return size() == 0;
+  }
 
-		return false;
-	}
+  @Override
+  public boolean containsKey(Object key) {
+    for (Entry<K, V> entry : data) {
+      if (entry.getKey().equals(key)) {
+        return true;
+      }
+    }
 
-	@Override
-	public boolean containsValue(Object value) {
-		for (Entry<K, V> entry : data) {
-			if (entry.getValue().equals(value)) return true;
-		}
+    return false;
+  }
 
-		return false;
-	}
+  @Override
+  public boolean containsValue(Object value) {
+    for (Entry<K, V> entry : data) {
+      if (entry.getValue().equals(value)) {
+        return true;
+      }
+    }
 
-	@Override
-	public V get(Object key) {
-		for (Entry<K, V> entry : data) {
-			if (entry.getKey().equals(key)) return entry.getValue();
-		}
+    return false;
+  }
 
-		return null;
-	}
+  @Override
+  public V get(Object key) {
+    for (Entry<K, V> entry : data) {
+      if (entry.getKey().equals(key)) {
+        return entry.getValue();
+      }
+    }
 
-	@Override
-	public V put(K key, V value) {
-		if (key == null || value == null) throw new NullPointerException();
+    return null;
+  }
 
-		for (Entry<K, V> entry : data) {
-			if (entry.getKey().equals(key)) {
-				V oldValue = entry.getValue();
+  @Override
+  public V put(K key, V value) {
+    if (key == null || value == null) {
+      throw new NullPointerException();
+    }
 
-				entry.setValue(value);
+    for (Entry<K, V> entry : data) {
+      if (entry.getKey().equals(key)) {
+        V oldValue = entry.getValue();
 
-				return oldValue;
-			}
-		}
+        entry.setValue(value);
 
-		data.add(new SimpleEntry(key, value));
+        return oldValue;
+      }
+    }
 
-		return null;
-	}
+    data.add(new SimpleEntry(key, value));
 
-	@Override
-	public V remove(Object key) {
-		int i = 0;
-		for (Entry<K, V> entry : data) {
-			if (entry.getKey().equals(key)) {
-				V oldValue = entry.getValue();
+    return null;
+  }
 
-				data.remove(i);
+  @Override
+  public V remove(Object key) {
+    int i = 0;
+    for (Entry<K, V> entry : data) {
+      if (entry.getKey().equals(key)) {
+        V oldValue = entry.getValue();
 
-				return oldValue;
-			}
+        data.remove(i);
 
-			i++;
-		}
+        return oldValue;
+      }
 
-		return null;
-	}
+      i++;
+    }
 
-	@Override
-	public void putAll(Map<? extends K, ? extends V> m) {
-		Set<? extends Entry<? extends K, ? extends V>> entrySet = m.entrySet();
+    return null;
+  }
 
-		for (Entry<? extends K, ? extends V> set : entrySet) {
-			this.put(set.getKey(), set.getValue());
-		}
-	}
+  @Override
+  public void putAll(Map<? extends K, ? extends V> m) {
+    Set<? extends Entry<? extends K, ? extends V>> entrySet = m.entrySet();
 
-	@Override
-	public void clear() {
-		data.clear();
-	}
+    for (Entry<? extends K, ? extends V> set : entrySet) {
+      this.put(set.getKey(), set.getValue());
+    }
+  }
 
-	@Override
-	public Set<K> keySet() {
-		SimpleSet<K> set = new SimpleSet<>(data.size());
+  @Override
+  public void clear() {
+    data.clear();
+  }
 
-		for (Entry<K, V> entry : data) {
-			set.add(entry.getKey());
-		}
+  @Override
+  public Set<K> keySet() {
+    SimpleSet<K> set = new SimpleSet<>(data.size());
 
-		return set;
-	}
+    for (Entry<K, V> entry : data) {
+      set.add(entry.getKey());
+    }
 
-	@Override
-	public Collection<V> values() {
-		SimpleSet<V> values = new SimpleSet<>(data.size());
+    return set;
+  }
 
-		for (Entry<K, V> entry : data) {
-			values.add(entry.getValue());
-		}
+  @Override
+  public Collection<V> values() {
+    SimpleSet<V> values = new SimpleSet<>(data.size());
 
-		return values;
-	}
+    for (Entry<K, V> entry : data) {
+      values.add(entry.getValue());
+    }
 
-	@Override
-	public Set<Entry<K, V>> entrySet() {
-		return data;
-	}
+    return values;
+  }
 
-	private class SimpleEntry implements Entry<K, V> {
-		private K key;
-		private V value;
+  @Override
+  public Set<Entry<K, V>> entrySet() {
+    return data;
+  }
 
-		public SimpleEntry(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
+  private class SimpleEntry implements Entry<K, V> {
 
-		@Override
-		public K getKey() {
-			return key;
-		}
+    private K key;
+    private V value;
 
-		@Override
-		public V getValue() {
-			return value;
-		}
+    public SimpleEntry(K key, V value) {
+      this.key = key;
+      this.value = value;
+    }
 
-		@Override
-		public V setValue(V value) {
-			V oldValue = this.value;
+    @Override
+    public K getKey() {
+      return key;
+    }
 
-			this.value = value;
+    @Override
+    public V getValue() {
+      return value;
+    }
 
-			return oldValue;
-		}
-	}
+    @Override
+    public V setValue(V value) {
+      V oldValue = this.value;
+
+      this.value = value;
+
+      return oldValue;
+    }
+  }
 }

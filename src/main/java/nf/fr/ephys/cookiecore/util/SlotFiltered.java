@@ -9,40 +9,41 @@ import java.util.Collections;
 import java.util.Vector;
 
 public class SlotFiltered extends Slot {
-	private Vector<Item> filter;
 
-	public SlotFiltered(IInventory inventory, int id, int x, int y) {
-		super(inventory, id, x, y);
+  private Vector<Item> filter;
 
-		this.filter = new Vector<>();
-	}
+  public SlotFiltered(IInventory inventory, int id, int x, int y) {
+    super(inventory, id, x, y);
 
-	public SlotFiltered(IInventory inventory, int id, int x, int y, Item[] filter) {
-		this(inventory, id, x, y);
+    this.filter = new Vector<>();
+  }
 
-		addFilteredIds(filter);
-	}
+  public SlotFiltered(IInventory inventory, int id, int x, int y, Item[] filter) {
+    this(inventory, id, x, y);
 
-	public SlotFiltered(IInventory inventory, int id, int x, int y, Vector<Item> filter) {
-		super(inventory, id, x, y);
+    addFilteredIds(filter);
+  }
 
-		this.filter = filter;
-	}
+  public SlotFiltered(IInventory inventory, int id, int x, int y, Vector<Item> filter) {
+    super(inventory, id, x, y);
 
-	public SlotFiltered addFilteredIds(Item[] filter) {
-		Collections.addAll(this.filter, filter);
+    this.filter = filter;
+  }
 
-		return this;
-	}
+  public SlotFiltered addFilteredIds(Item[] filter) {
+    Collections.addAll(this.filter, filter);
 
-	public SlotFiltered addFilteredIds(Item filter) {
-		this.filter.add(filter);
+    return this;
+  }
 
-		return this;
-	}
+  public SlotFiltered addFilteredIds(Item filter) {
+    this.filter.add(filter);
 
-	@Override
-	public boolean isItemValid(ItemStack stack) {
-		return this.filter.contains(stack.getItem());
-	}
+    return this;
+  }
+
+  @Override
+  public boolean isItemValid(ItemStack stack) {
+    return this.filter.contains(stack.getItem());
+  }
 }

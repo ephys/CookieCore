@@ -1,72 +1,79 @@
 package nf.fr.ephys.cookiecore.helpers;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 import java.util.Random;
 
 public class MathHelper {
-	public static Random random = new Random();
 
-	public static Color gradient(Color colorA, Color colorB, float percent) {
-		return new Color(
-			Math.round((colorB.getRed() - colorA.getRed()) * percent + colorA.getRed()),
-			Math.round((colorB.getGreen() - colorA.getGreen()) * percent + colorA.getGreen()),
-			Math.round((colorB.getBlue() - colorA.getBlue()) * percent + colorA.getBlue())
-		);
-	}
+  public static Random random = new Random();
 
-	public static int gradientRGB(int colorA, int colorB, float percent) {
-		return Math.round((colorB - colorA) * percent + colorA);
-	}
+  public static Color gradient(Color colorA, Color colorB, float percent) {
+    return new Color(
+        Math.round((colorB.getRed() - colorA.getRed()) * percent + colorA.getRed()),
+        Math.round((colorB.getGreen() - colorA.getGreen()) * percent + colorA.getGreen()),
+        Math.round((colorB.getBlue() - colorA.getBlue()) * percent + colorA.getBlue())
+    );
+  }
 
-	public static int[] toRGB(int hexColor) {
-		// 0xRRGGBB
+  public static int gradientRGB(int color1, int color2, float percent) {
+    byte r1 = (byte) (color1 >> 16 & 0xff);
+    byte g1 = (byte) (color1 >> 8 & 0xff);
+    byte b1 = (byte) (color1 & 0xff);
 
-		return new int[] {
-			hexColor >> 16,         // RR [>> GGBB]
-			(hexColor >> 8) & 0xFF, // RRGG [>> BB], 00GG
-			hexColor & 0xFF         // 0000BB
-		};
-	}
+    byte g2 = (byte) (color2 >> 8 & 0xff);
+    byte r2 = (byte) (color2 >> 16 & 0xff);
+    byte b2 = (byte) (color2 & 0xff);
 
-	public static Object getRandom(List list) {
-		if (list.size() == 0) return null;
+    byte r3 = (byte) Math.round((r2 - r1) * percent + r1);
+    byte g3 = (byte) Math.round((g2 - g1) * percent + g1);
+    byte b3 = (byte) Math.round((b2 - b1) * percent + b1);
 
-		Object o = null;
-		do {
-			o = list.get(net.minecraft.util.MathHelper.getRandomIntegerInRange(random, 0, list.size() - 1));
-		} while(o == null);
+    return (r3 << 16) | (g3 << 8) | b3;
+  }
 
-		return o;
-	}
+  public static byte[] toRGB(int hexColor) {
+    return new byte[]{
+        (byte) (hexColor >> 16 & 0xff),
+        (byte) ((hexColor >> 8) & 0xff),
+        (byte) (hexColor & 0xff)
+    };
+  }
 
-	public static int averageColorFromAint(int[] aint) {
-		float r = 0;
-		float g = 0;
-		float b = 0;
+  public static Object getRandom(List list) {
+    if (list.size() == 0) {
+      return null;
+    }
 
-		for (int pixel : aint) {
-			/*r += (pixel >> 16 & 0xFF) / aint.length;
-			g += (pixel >> 8 & 0xFF) / aint.length;
-			b += (pixel & 0xFF) / aint.length;*/
+    Object o;
+    do {
+      o = list.get(net.minecraft.util.MathHelper.getRandomIntegerInRange(random, 0, list.size() - 1));
+    } while (o == null);
 
-			r += (-pixel >> 16 & 0xFF) / 255.0F;
-			g += (-pixel >> 8 & 0xFF) / 255.0F;
-			b += (-pixel & 0xFF) / 255.0F;
-		}
+    return o;
+  }
 
-		r /= aint.length;
-		g /= aint.length;
-		b /= aint.length;
+  public static int averageColorFromAint(int[] aint) {
 
-		return -((int)(r * 255.0F) << 16 | (int)(g * 255.0F) << 8 | (int)(b * 255.0F));
+    double r = 0, g = 0, b = 0;
+    for (int pixel : aint) {
+      r += (-pixel >> 16 & 0xFF);// / 255f;
+      g += (-pixel >> 8 & 0xFF); // / 255f;
+      b += (-pixel & 0xFF); // / 255f;
+    }
 
-		//return (int) r << 16 + (int) g << 8 + (int) b;
-	}
+    r /= aint.length;
+    g /= aint.length;
+    b /= aint.length;
 
-	public static double round(double value, int digits) {
-		double mult = Math.pow(10, digits);
+    return -((int) r << 16 | (int) g << 8 | (int) b);
 
-		return Math.round(value * mult) / mult;
-	}
+    //return -((int) (r*255f) << 16 + (int) (g*255f) << 8 + (int) b*255f);
+  }
+
+  public static double round(double value, int digits) {
+    double mult = Math.pow(10, digits);
+
+    return Math.round(value * mult) / mult;
+  }
 }

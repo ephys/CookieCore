@@ -7,108 +7,129 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.*;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.IFluidTank;
 
 public class FluidHelper {
-	public static Fluid getFluidForBlock(Block block) {
-		// more hotfixing the broken vanilla fluid handling (fluid registry only has blocks for still water & still lava)
-		if (block == Blocks.flowing_water)
-			return FluidRegistry.WATER;
 
-		if (block == Blocks.flowing_lava)
-			return FluidRegistry.LAVA;
+  public static Fluid getFluidForBlock(Block block) {
+    // more hotfixing the broken vanilla fluid handling (fluid registry only has blocks for still water & still lava)
+    if (block == Blocks.flowing_water) {
+      return FluidRegistry.WATER;
+    }
 
-		return FluidRegistry.lookupFluidForBlock(block);
-	}
+    if (block == Blocks.flowing_lava) {
+      return FluidRegistry.LAVA;
+    }
 
-	public static Block getBlockForFluid(Fluid fluid) {
-		Block fluidBlock = fluid.getBlock();
+    return FluidRegistry.lookupFluidForBlock(block);
+  }
 
-		if (fluidBlock == Blocks.water)
-			fluidBlock = Blocks.flowing_water;
-		else if (fluidBlock == Blocks.lava)
-			fluidBlock = Blocks.flowing_lava;
+  public static Block getBlockForFluid(Fluid fluid) {
+    Block fluidBlock = fluid.getBlock();
 
-		return fluidBlock;
-	}
+    if (fluidBlock == Blocks.water) {
+      fluidBlock = Blocks.flowing_water;
+    } else if (fluidBlock == Blocks.lava) {
+      fluidBlock = Blocks.flowing_lava;
+    }
 
-	public static FluidStack getFluidFromWorld(World world, int[] coords) {
-		if (world.getTileEntity(coords[0], coords[1], coords[2]) != null) {
-			// todo: send EventOmnibucketPickupNBT
+    return fluidBlock;
+  }
 
-			return null;
-		}
+  public static FluidStack getFluidFromWorld(World world, int[] coords) {
+    if (world.getTileEntity(coords[0], coords[1], coords[2]) != null) {
+      // todo: send EventOmnibucketPickupNBT
 
-		Block block = world.getBlock(coords[0], coords[1], coords[2]);
-		int l = world.getBlockMetadata(coords[0], coords[1], coords[2]);
+      return null;
+    }
 
-		Fluid targetFluid = getFluidForBlock(block);
+    Block block = world.getBlock(coords[0], coords[1], coords[2]);
+    int l = world.getBlockMetadata(coords[0], coords[1], coords[2]);
 
-		if (l == 0 && targetFluid != null) {
-			return new FluidStack(targetFluid, 1000);
-		}
+    Fluid targetFluid = getFluidForBlock(block);
 
-		return null;
-	}
+    if (l == 0 && targetFluid != null) {
+      return new FluidStack(targetFluid, 1000);
+    }
 
-	// todo: send event for NBT fluid placement
-	public static boolean placeFluidInWorld(int[] coords, World world, FluidStack fluidstack) {
-		Fluid fluid = fluidstack.getFluid();
-		if (!fluid.canBePlacedInWorld() || fluidstack.tag != null) {
-			return false;
-		}
+    return null;
+  }
 
-		Block block = world.getBlock(coords[0], coords[1], coords[2]);
-		Material material = block.getMaterial();
+  // todo: send event for NBT fluid placement
+  public static boolean placeFluidInWorld(int[] coords, World world, FluidStack fluidstack) {
+    Fluid fluid = fluidstack.getFluid();
+    if (!fluid.canBePlacedInWorld() || fluidstack.tag != null) {
+      return false;
+    }
 
-		if (material.isSolid()) return false;
+    Block block = world.getBlock(coords[0], coords[1], coords[2]);
+    Material material = block.getMaterial();
 
-		if (world.provider.isHellWorld && fluid == FluidRegistry.WATER) {
-			world.playSoundEffect(coords[0] + 0.5D, coords[1] + 0.5D, coords[2] + 0.5D, "random.fizz", 0.5F, 2.6F + world.rand.nextFloat() - world.rand.nextFloat() * 0.8F);
+    if (material.isSolid()) {
+      return false;
+    }
 
-			for (int l = 0; l < 8; ++l) {
-				world.spawnParticle("largesmoke", coords[0] + Math.random(), coords[1] + Math.random(), coords[2] + Math.random(), 0.0D, 0.0D, 0.0D);
-			}
-		} else {
-			if (!world.isRemote && !material.isLiquid()) {
-				world.func_147480_a(coords[0], coords[1], coords[2], true);
-			}
+    if (world.provider.isHellWorld && fluid == FluidRegistry.WATER) {
+      world.playSoundEffect(coords[0] + 0.5D, coords[1] + 0.5D, coords[2] + 0.5D, "random.fizz",
+                            0.5F, 2.6F + world.rand.nextFloat() - world.rand.nextFloat() * 0.8F);
 
-			world.setBlock(coords[0], coords[1], coords[2], getBlockForFluid(fluid), 0, 3);
-		}
+      for (int l = 0; l < 8; ++l) {
+        world.spawnParticle("largesmoke", coords[0] + Math.random(), coords[1] + Math.random(),
+                            coords[2] + Math.random(), 0.0D, 0.0D, 0.0D);
+      }
+    } else {
+      if (!world.isRemote && !material.isLiquid()) {
+        world.func_147480_a(coords[0], coords[1], coords[2], true);
+      }
 
-		return true;
-	}
+      world.setBlock(coords[0], coords[1], coords[2], getBlockForFluid(fluid), 0, 3);
+    }
 
-	public static boolean playerPlaceFluid(EntityPlayer player, int[] coords, int side, ItemStack stack, World world, FluidStack fluidstack) {
-		return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) && placeFluidInWorld(coords, world, fluidstack);
-	}
+    return true;
+  }
 
-	public static FluidStack playerPickupFluid(EntityPlayer player, World world, int[] coords, int side, ItemStack stack) {
-		return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) ? getFluidFromWorld(world, coords) : null;
-	}
+  public static boolean playerPlaceFluid(EntityPlayer player, int[] coords, int side,
+                                         ItemStack stack, World world, FluidStack fluidstack) {
+    return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) && placeFluidInWorld(
+        coords, world, fluidstack);
+  }
 
-	public static boolean insertFluid(FluidStack stack, IFluidHandler fluidHandler, ForgeDirection direction) {
-		int inserted = fluidHandler.fill(direction, stack, false);
+  public static FluidStack playerPickupFluid(EntityPlayer player, World world, int[] coords,
+                                             int side, ItemStack stack) {
+    return player.canPlayerEdit(coords[0], coords[1], coords[2], side, stack) ? getFluidFromWorld(
+        world, coords) : null;
+  }
 
-		if (inserted != stack.amount) return false;
+  public static boolean insertFluid(FluidStack stack, IFluidHandler fluidHandler,
+                                    ForgeDirection direction) {
+    int inserted = fluidHandler.fill(direction, stack, false);
 
-		fluidHandler.fill(direction, stack, true);
+    if (inserted != stack.amount) {
+      return false;
+    }
 
-		return true;
-	}
+    fluidHandler.fill(direction, stack, true);
 
-	public static boolean insertFluid(FluidStack stack, IFluidHandler fluidHandler) {
-		return insertFluid(stack, fluidHandler, ForgeDirection.UNKNOWN);
-	}
+    return true;
+  }
 
-	public static boolean insertFluid(FluidStack stack, IFluidTank fluidHandler) {
-		int inserted = fluidHandler.fill(stack, false);
+  public static boolean insertFluid(FluidStack stack, IFluidHandler fluidHandler) {
+    return insertFluid(stack, fluidHandler, ForgeDirection.UNKNOWN);
+  }
 
-		if (inserted != stack.amount) return false;
+  public static boolean insertFluid(FluidStack stack, IFluidTank fluidHandler) {
+    int inserted = fluidHandler.fill(stack, false);
 
-		fluidHandler.fill(stack, true);
+    if (inserted != stack.amount) {
+      return false;
+    }
 
-		return true;
-	}
+    fluidHandler.fill(stack, true);
+
+    return true;
+  }
 }

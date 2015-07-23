@@ -1,6 +1,7 @@
 package nf.fr.ephys.cookiecore.helpers;
 
 import com.google.common.collect.BiMap;
+
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -11,250 +12,272 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.RegistryNamespaced;
-import nf.fr.ephys.cookiecore.common.CookieCore;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import nf.fr.ephys.cookiecore.common.CookieCore;
+
 /**
  * https://github.com/CoFH/CoFHLib/blob/master/src/main/java/cofh/util/RegistryUtils.java
  */
 public class RegistryHelper {
-	@SuppressWarnings("unchecked")
-	public static Object overwriteEntry(RegistryNamespaced registry, String name, Object newEntry) {
-		try {
-			Object oldEntry = registry.getObject(name);
-			int id = registry.getIDForObject(oldEntry);
 
-			BiMap map = (BiMap) registry.registryObjects;
+  @SuppressWarnings("unchecked")
+  public static Object overwriteEntry(RegistryNamespaced registry, String name, Object newEntry) {
+    try {
+      Object oldEntry = registry.getObject(name);
+      int id = registry.getIDForObject(oldEntry);
 
-			registry.underlyingIntegerMap.func_148746_a(newEntry, id);
+      BiMap map = (BiMap) registry.registryObjects;
 
-			map.remove(name);
-			map.forcePut(name, newEntry);
+      registry.underlyingIntegerMap.func_148746_a(newEntry, id);
 
-			BiMap reverse = (BiMap) registry.field_148758_b;
-			reverse.remove(oldEntry);
-			reverse.forcePut(newEntry, name);
+      map.remove(name);
+      map.forcePut(name, newEntry);
 
-			CookieCore.getLogger().info("RegistryUtils::overwriteEntry: overwriting '" + name + "' with " + newEntry.toString() + ": Operation success");
+      BiMap reverse = (BiMap) registry.field_148758_b;
+      reverse.remove(oldEntry);
+      reverse.forcePut(newEntry, name);
 
-			return oldEntry;
-		} catch (Exception e) {
-			CookieCore.getLogger().error("RegistryUtils::overwriteEntry: overwriting '" + name + ": Operation failure (this is a bug !)");
-			e.printStackTrace();
+      CookieCore.getLogger().info(
+          "RegistryUtils::overwriteEntry: overwriting '" + name + "' with " + newEntry.toString()
+          + ": Operation success");
 
-			return null;
-		}
-	}
+      return oldEntry;
+    } catch (Exception e) {
+      CookieCore.getLogger().error("RegistryUtils::overwriteEntry: overwriting '" + name
+                                   + ": Operation failure (this is a bug !)");
+      e.printStackTrace();
 
-	public static Block overwriteBlock(String name, Block newBlock) {
-		Block oldBlock = (Block) overwriteEntry(Block.blockRegistry, name, newBlock);
+      return null;
+    }
+  }
 
-		if (oldBlock == null) return null;
+  public static Block overwriteBlock(String name, Block newBlock) {
+    Block oldBlock = (Block) overwriteEntry(Block.blockRegistry, name, newBlock);
 
-		if (name.startsWith("minecraft:")) {
-			Field[] blocks = Blocks.class.getDeclaredFields();
+    if (oldBlock == null) {
+      return null;
+    }
 
-			try {
-				for (Field blockField : blocks) {
-					if (blockField.get(null) == oldBlock) {
-						blockField.setAccessible(true);
+    if (name.startsWith("minecraft:")) {
+      Field[] blocks = Blocks.class.getDeclaredFields();
 
-						Field modifiersField = Field.class.getDeclaredField("modifiers");
-						modifiersField.setAccessible(true);
-						modifiersField.setInt(blockField, blockField.getModifiers() & ~Modifier.FINAL);
+      try {
+        for (Field blockField : blocks) {
+          if (blockField.get(null) == oldBlock) {
+            blockField.setAccessible(true);
 
-						blockField.set(null, newBlock);
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(blockField, blockField.getModifiers() & ~Modifier.FINAL);
 
-						CookieCore.getLogger().warn("RegistryUtils::overwriteBlock: overwrote net.minecraft.init.Blocks entry");
+            blockField.set(null, newBlock);
 
-						break;
-					}
-				}
-			} catch (Exception e) {
-				CookieCore.getLogger().warn("RegistryUtils::overwriteBlock: failed to overwrite net.minecraft.init.Blocks entry");
+            CookieCore.getLogger()
+                .warn("RegistryUtils::overwriteBlock: overwrote net.minecraft.init.Blocks entry");
 
-				e.printStackTrace();
-			}
-		}
+            break;
+          }
+        }
+      } catch (Exception e) {
+        CookieCore.getLogger().warn(
+            "RegistryUtils::overwriteBlock: failed to overwrite net.minecraft.init.Blocks entry");
 
-		overwriteItemBlock(name, newBlock);
+        e.printStackTrace();
+      }
+    }
 
-		return oldBlock;
-	}
+    overwriteItemBlock(name, newBlock);
 
-	public static Item overwriteItem(String name, Item newItem) {
-		Item oldItem = (Item) overwriteEntry(Item.itemRegistry, name, newItem);
+    return oldBlock;
+  }
 
-		if (oldItem == null) return null;
+  public static Item overwriteItem(String name, Item newItem) {
+    Item oldItem = (Item) overwriteEntry(Item.itemRegistry, name, newItem);
 
-		if (name.startsWith("minecraft:")) {
-			Field[] items = Items.class.getDeclaredFields();
+    if (oldItem == null) {
+      return null;
+    }
 
-			try {
-				for (Field itemField : items) {
-					if (itemField.get(null) == oldItem) {
-						itemField.setAccessible(true);
+    if (name.startsWith("minecraft:")) {
+      Field[] items = Items.class.getDeclaredFields();
 
-						Field modifiersField = Field.class.getDeclaredField("modifiers");
-						modifiersField.setAccessible(true);
-						modifiersField.setInt(itemField, itemField.getModifiers() & ~Modifier.FINAL);
+      try {
+        for (Field itemField : items) {
+          if (itemField.get(null) == oldItem) {
+            itemField.setAccessible(true);
 
-						itemField.set(null, newItem);
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(itemField, itemField.getModifiers() & ~Modifier.FINAL);
 
-						CookieCore.getLogger().warn("RegistryUtils::overwriteItem: overwrote net.minecraft.init.Items entry");
+            itemField.set(null, newItem);
 
-						break;
-					}
-				}
-			} catch (Exception e) {
-				CookieCore.getLogger().warn("RegistryUtils::overwriteItem: failed to overwrite net.minecraft.init.Items entry");
+            CookieCore.getLogger()
+                .warn("RegistryUtils::overwriteItem: overwrote net.minecraft.init.Items entry");
 
-				e.printStackTrace();
-			}
-		}
+            break;
+          }
+        }
+      } catch (Exception e) {
+        CookieCore.getLogger().warn(
+            "RegistryUtils::overwriteItem: failed to overwrite net.minecraft.init.Items entry");
 
-		return oldItem;
-	}
+        e.printStackTrace();
+      }
+    }
 
-	public static boolean overwriteItemBlock(String name, Block newBlock) {
-		Object oldItem = Item.itemRegistry.getObject(name);
+    return oldItem;
+  }
 
-		if (oldItem instanceof ItemBlock) {
-			((ItemBlock) oldItem).field_150939_a = newBlock;
+  public static boolean overwriteItemBlock(String name, Block newBlock) {
+    Object oldItem = Item.itemRegistry.getObject(name);
 
-			return true;
-		}
+    if (oldItem instanceof ItemBlock) {
+      ((ItemBlock) oldItem).field_150939_a = newBlock;
 
-		return false;
-	}
+      return true;
+    }
 
-	public static void overwriteReedBlock(ItemReed reed, Block newBlock) {
-		reed.field_150935_a = newBlock;
-	}
+    return false;
+  }
 
-	public static int removeItemRecipe(ItemStack stack) {
-		List crafts = CraftingManager.getInstance().getRecipeList();
+  public static void overwriteReedBlock(ItemReed reed, Block newBlock) {
+    reed.field_150935_a = newBlock;
+  }
 
-		int nbRemoved = 0;
-		for (int i = 0; i < crafts.size(); i++) {
-			if (crafts.get(i) instanceof IRecipe) {
-				ItemStack output = ((IRecipe) crafts.get(i)).getRecipeOutput();
+  public static int removeItemRecipe(ItemStack stack) {
+    List crafts = CraftingManager.getInstance().getRecipeList();
 
-				if (output == null) continue;
+    int nbRemoved = 0;
+    for (int i = 0; i < crafts.size(); i++) {
+      if (crafts.get(i) instanceof IRecipe) {
+        ItemStack output = ((IRecipe) crafts.get(i)).getRecipeOutput();
 
-				if (output.isItemEqual(stack)) {
-					crafts.remove(i);
-					nbRemoved++;
-				}
-			}
-		}
+        if (output == null) {
+          continue;
+        }
 
-		return nbRemoved;
-	}
+        if (output.isItemEqual(stack)) {
+          crafts.remove(i);
+          nbRemoved++;
+        }
+      }
+    }
 
-	/**
-	 * Converts an itemstack name to an ItemStack instance
-	 * The name must follow this format: modname:itemname@metadata
-	 *                                   modname:itemname@[0-7],[9-14],15   will return itemstacks 0 to 7, 9 to 14 and 15
-	 *                      DEPRECATED - modname:itemname@*                 will default to metadata 0 to 15 (for backwards compatibility. Use the range format)
-	 *                                   modname:itemname                   will default to metadata 0
-	 *
-	 * @param name  the item name
-	 * @return      the matching itemstacks or null if an error occured
-	 */
-	public static ItemStack[] getItemStacks(String name) {
-		String[] data = name.split("@");
+    return nbRemoved;
+  }
 
-		String itemname = data[0];
+  /**
+   * Converts an itemstack name to an ItemStack instance The name must follow this format:
+   * modname:itemname@metadata modname:itemname@[0-7],[9-14],15   will return itemstacks 0 to 7, 9
+   * to 14 and 15 DEPRECATED - modname:itemname@*                 will default to metadata 0 to 15
+   * (for backwards compatibility. Use the range format) modname:itemname                   will
+   * default to metadata 0
+   *
+   * @param name the item name
+   * @return the matching itemstacks or null if an error occured
+   */
+  public static ItemStack[] getItemStacks(String name) {
+    String[] data = name.split("@");
 
-		Item item = (Item) Item.itemRegistry.getObject(itemname);
+    String itemname = data[0];
 
-		if (item == null) return new ItemStack[0];
+    Item item = (Item) Item.itemRegistry.getObject(itemname);
 
-		if (data.length == 1)
-			return new ItemStack[]{ new ItemStack(item) };
+    if (item == null) {
+      return new ItemStack[0];
+    }
 
-		return parseMetadata(item, data[1]);
-	}
+    if (data.length == 1) {
+      return new ItemStack[]{new ItemStack(item)};
+    }
 
-	private static ItemStack[] parseMetadata(Item item, String metadata) {
-		if (metadata.charAt(0) == '*') {
-			// Won't work on servers. Iz sideonly-ed -_-
-			//if (!item.getHasSubtypes()) stacks.add(new ItemStack(item));
-			//item.getSubItems(item, item.getCreativeTab(), stacks);
+    return parseMetadata(item, data[1]);
+  }
 
-			CookieCore.getLogger().warn("RegistryHelper::parseMetadata(" + metadata + "): * is deprecated, use the range format (@[0-15],18,[20-29])");
-			ItemStack[] stacks = new ItemStack[16];
-			for (int i = 0; i < stacks.length; i++) {
-				stacks[i] = new ItemStack(item, 1, i);
-			}
+  private static ItemStack[] parseMetadata(Item item, String metadata) {
+    if (metadata.charAt(0) == '*') {
+      // Won't work on servers. Iz sideonly-ed -_-
+      //if (!item.getHasSubtypes()) stacks.add(new ItemStack(item));
+      //item.getSubItems(item, item.getCreativeTab(), stacks);
 
-			return stacks;
-		}
+      CookieCore.getLogger().warn("RegistryHelper::parseMetadata(" + metadata
+                                  + "): * is deprecated, use the range format (@[0-15],18,[20-29])");
+      ItemStack[] stacks = new ItemStack[16];
+      for (int i = 0; i < stacks.length; i++) {
+        stacks[i] = new ItemStack(item, 1, i);
+      }
 
-		List<ItemStack> stacks = new ArrayList<>();
-		String[] ranges = metadata.split(",");
-		for (String range: ranges) {
-			try {
-				if (range.startsWith("["))
-					range = range.substring(1, range.length() - 1);
+      return stacks;
+    }
 
-				if (range.contains("-")) {
-					String[] subRanges = range.split("-");
-					int lower = Integer.parseInt(subRanges[0]);
-					int upper = Integer.parseInt(subRanges[1]);
+    List<ItemStack> stacks = new ArrayList<>();
+    String[] ranges = metadata.split(",");
+    for (String range : ranges) {
+      try {
+        if (range.startsWith("[")) {
+          range = range.substring(1, range.length() - 1);
+        }
 
-					if (lower > upper) {
-						int tmp = upper;
-						upper = lower;
-						lower = tmp;
-					}
+        if (range.contains("-")) {
+          String[] subRanges = range.split("-");
+          int lower = Integer.parseInt(subRanges[0]);
+          int upper = Integer.parseInt(subRanges[1]);
 
-					for (int meta = lower; meta <= upper; meta++) {
-						stacks.add(new ItemStack(item, 1, meta));
-					}
-				} else {
-					int meta = Integer.parseInt(range);
-					stacks.add(new ItemStack(item, 1, meta));
-				}
-			} catch (NumberFormatException e) {
-				System.out.println(metadata);
-				e.printStackTrace();
-				CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
-			}
-		}
+          if (lower > upper) {
+            int tmp = upper;
+            upper = lower;
+            lower = tmp;
+          }
 
-		return stacks.toArray(new ItemStack[stacks.size()]);
-	}
+          for (int meta = lower; meta <= upper; meta++) {
+            stacks.add(new ItemStack(item, 1, meta));
+          }
+        } else {
+          int meta = Integer.parseInt(range);
+          stacks.add(new ItemStack(item, 1, meta));
+        }
+      } catch (NumberFormatException e) {
+        System.out.println(metadata);
+        e.printStackTrace();
+        CookieCore.getLogger().error("Failed to parse metadata value " + metadata, e);
+      }
+    }
 
-	/**
-	 * @deprecated use getItemStacks(String name);
-	 */
-	@Deprecated
-	public static ItemStack getItemStack(String name) {
-		String[] data = name.split("@");
+    return stacks.toArray(new ItemStack[stacks.size()]);
+  }
 
-		String itemname = data[0];
+  /**
+   * @deprecated use getItemStacks(String name);
+   */
+  @Deprecated
+  public static ItemStack getItemStack(String name) {
+    String[] data = name.split("@");
 
-		Item item = (Item) Item.itemRegistry.getObject(itemname);
+    String itemname = data[0];
 
-		if (item == null) return null;
+    Item item = (Item) Item.itemRegistry.getObject(itemname);
 
-		try {
-			int metadata;
-			if (data.length > 1) {
-				metadata = data[1].equals("*") ? 16 : Integer.parseInt(data[1]);
-			} else {
-				metadata = 0;
-			}
+    if (item == null) {
+      return null;
+    }
 
-			return new ItemStack(item, 1, metadata);
-		} catch(NumberFormatException e) {
-			return null;
-		}
-	}
+    try {
+      int metadata;
+      if (data.length > 1) {
+        metadata = data[1].equals("*") ? 16 : Integer.parseInt(data[1]);
+      } else {
+        metadata = 0;
+      }
+
+      return new ItemStack(item, 1, metadata);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
 }
