@@ -142,5 +142,5 @@ curse {
     changelog = 'https://github.com/Ephys/CookieCore/commits/1.7'
     addGameVersion '1.7.10'
 
-    additionalArtifact devJar
+    additionalArtifact deobfJar
 }

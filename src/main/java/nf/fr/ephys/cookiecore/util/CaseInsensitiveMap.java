@@ -3,7 +3,7 @@ package nf.fr.ephys.cookiecore.util;
 import java.util.HashMap;
 
 /**
- * String -> V HashMap that does not care about the case of the key.
+ * String -&gt; V HashMap that does not care about the case of the key.
  *
  * @param <V> The type of the elements inserted in the Map.
  */
