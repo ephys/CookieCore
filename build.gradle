@@ -134,8 +134,16 @@ publishing {
 }
 
 curse {
+    def apiKey_ = ''
+    if (project.hasProperty('curseForgeApiKey')) {
+        apiKey_ = project.curseForgeApiKey
+    } else if (System.hasProperty('curseForgeApiKey')) {
+        apiKey_ = System.getProperty('curseForgeApiKey')
+    }
+
+    apiKey = apiKey_
+
     projectId = '222908'
-    apiKey = project.hasProperty('curseForgeApiKey') ? project.curseForgeApiKey : ''
     releaseType = 'release'
 
     displayName = "CookieCore ${version}"
