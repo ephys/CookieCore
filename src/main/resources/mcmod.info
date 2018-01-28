@@ -1,0 +1,16 @@
+[
+{
+  "modid": "cookiecore",
+  "name": "CookieCore",
+  "description": "Library for ephys' mods.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Ephys"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
