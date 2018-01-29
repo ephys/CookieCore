@@ -109,16 +109,6 @@ jar {
     }
 }
 
-/*
-Manifest-Version: 1.0
-Implementation-Title: cookiecore
-Implementation-Version: 1.12-2.0.0
-Built-By: ephys
-FMLAT: cookiecore_at.cfg
-Git-Hash: 1670563
-Created-By: 25.121-b13 + (Oracle Corporation)
- */
-
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     appendix = 'deobf'
