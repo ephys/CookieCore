@@ -94,9 +94,14 @@ public class ConfigSynchronizer {
         fieldName = field.getName();
       }
 
+      String category = configMeta.category();
+      if (category.equals("")) {
+        category = "general";
+      }
+
       Object actualValue = get(
         configHandler,
-        configMeta.category(),
+        category,
         fieldName,
         configMeta.description(),
         configMeta.requiresMcRestart(),
