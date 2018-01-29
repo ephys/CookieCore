@@ -7,6 +7,8 @@ import net.minecraft.world.gen.FlatLayerInfo;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
@@ -22,8 +24,12 @@ public class FlatPresetRegistry {
 
   public static GuiFlatPresets.LayerItem buildPreset(
     String name, Item icon, int iconMeta, Biome biome,
-    List structures, FlatLayerInfo[] layers
+    List<String> structures, FlatLayerInfo[] layers
   ) {
+
+    if (structures == null) {
+      structures = Collections.emptyList();
+    }
 
     GuiFlatPresets.registerPreset(name, icon, iconMeta, biome, structures, layers);
 
