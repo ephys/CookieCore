@@ -7,7 +7,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = CookieCore.MODID, version = CookieCore.VERSION)
+@Mod(modid = CookieCore.MODID, version = CookieCore.VERSION, certificateFingerprint = "@FINGERPRINT@")
 public class CookieCore {
   public static final String MODID = "cookiecore";
   public static final String VERSION = "@VERSION@";
