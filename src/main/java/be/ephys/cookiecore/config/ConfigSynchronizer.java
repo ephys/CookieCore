@@ -22,6 +22,7 @@ import java.util.Set;
  * TODO add @Config (class annotation) to define defaults (category, restart, etc)
  * TODO add @OnConfigChange (method annotation) to call when a field changes value (field name, new value, old value)
  * TODO on config change, update field value
+ * TODO add Enum value description support
  */
 public class ConfigSynchronizer {
 
@@ -50,7 +51,7 @@ public class ConfigSynchronizer {
 
     Set<ASMDataTable.ASMData> configAsm = event.getAsmData().getAll(Config.class.getCanonicalName());
 
-    CookieCore.getLogger().info("Loading features from mod " + modMeta.modId + "(" + modMeta.name + ")");
+    CookieCore.getLogger().info("Syncing config fields from mod " + modMeta.modId + " (" + modMeta.name + ")");
     for (ASMDataTable.ASMData asmData : configAsm) {
       // this fails if there is more than one mod in the same jar.
       if (!isFromMod(asmData, event.getModMetadata().modId)) {
@@ -182,7 +183,11 @@ public class ConfigSynchronizer {
     Property property = getPropertyByType(configHandler, category, optionName, defaultValue, valueType);
 
     if (isEnum(valueType)) {
-      description += "\nPossible values (must match exactly): " + StringUtils.join(getEnums(valueType), " ");
+      if (description.length() > 0) {
+        description += "\n";
+      }
+
+      description += "Possible values (must match exactly): " + StringUtils.join(getEnums(valueType), " | ");
     }
 
     property.setComment(description);
