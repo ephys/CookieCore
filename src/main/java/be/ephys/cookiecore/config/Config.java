@@ -9,9 +9,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Config {
 
-  boolean requiresRestart() default true;
+  boolean requiresMcRestart() default true;
+
+  boolean requiresWorldRestart() default true;
 
   String description() default "";
 
   String name() default "";
+
+  String category() default "";
 }

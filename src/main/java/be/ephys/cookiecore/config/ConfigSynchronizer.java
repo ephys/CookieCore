@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * TODO split config field names at ., to define category
- * TODO add @ConfigCategory (class annotation) to define default / parent category
+ * TODO support for lists
+ * TODO add @Config (class annotation) to define defaults (category, restart, etc)
  * TODO add @OnConfigChange (method annotation) to call when a field changes value (field name, new value, old value)
  * TODO on config change, update field value
  */
@@ -93,7 +93,16 @@ public class ConfigSynchronizer {
         fieldName = field.getName();
       }
 
-      Object actualValue = get(configHandler, "", fieldName, configMeta.description(), configMeta.requiresRestart(), field.getType(), defaultValue);
+      Object actualValue = get(
+        configHandler,
+        configMeta.category(),
+        fieldName,
+        configMeta.description(),
+        configMeta.requiresMcRestart(),
+        configMeta.requiresWorldRestart(),
+        field.getType(),
+        defaultValue
+      );
 
       field.set(null, actualValue);
     } catch (IllegalAccessException e) {
@@ -165,7 +174,10 @@ public class ConfigSynchronizer {
     throw new IllegalArgumentException("Unsupported type " + valueType.getCanonicalName());
   }
 
-  private static <T> T get(Configuration configHandler, String category, String optionName, String description, boolean requiresRestart, Class<T> valueType, Object defaultValue) {
+  private static <T> T get(
+    Configuration configHandler, String category, String optionName, String description,
+    boolean requiresMcRestart, boolean requiresWorldRestart, Class<T> valueType, Object defaultValue
+  ) {
 
     Property property = getPropertyByType(configHandler, category, optionName, defaultValue, valueType);
 
@@ -174,7 +186,8 @@ public class ConfigSynchronizer {
     }
 
     property.setComment(description);
-    property.setRequiresMcRestart(requiresRestart);
+    property.setRequiresMcRestart(requiresMcRestart);
+    property.setRequiresWorldRestart(requiresWorldRestart);
 
     // noinspection unchecked
     return (T) getValue(property, valueType);
