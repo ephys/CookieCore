@@ -23,6 +23,8 @@ import java.util.Set;
  * TODO add @OnConfigChange (method annotation) to call when a field changes value (field name, new value, old value)
  * TODO on config change, update field value
  * TODO add Enum value description support
+ * TODO set validValues for Enums
+ * TODO add minValue, maxValue to Config (numbers)
  */
 public class ConfigSynchronizer {
 
@@ -192,7 +194,18 @@ public class ConfigSynchronizer {
         description += "\n";
       }
 
-      description += "Possible values (must match exactly): " + StringUtils.join(getEnums(valueType), " | ");
+      EnumSet validEnums = getEnums(valueType);
+
+      description += "Possible values (must match exactly): " + StringUtils.join(validEnums, " | ");
+
+      String[] validValues = new String[validEnums.size()];
+
+      int i = 0;
+      for (Object validEnum : validEnums) {
+        validValues[i++] = validEnum.toString();
+      }
+
+      property.setValidValues(validValues);
     }
 
     property.setComment(description);
