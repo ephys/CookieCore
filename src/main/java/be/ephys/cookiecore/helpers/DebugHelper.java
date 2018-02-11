@@ -3,7 +3,7 @@ package be.ephys.cookiecore.helpers;
 import be.ephys.cookiecore.core.CookieCore;
 import net.minecraft.world.World;
 
-public class DebugHelper {
+public final class DebugHelper {
 
   public static final boolean debug = getDebug();
 
