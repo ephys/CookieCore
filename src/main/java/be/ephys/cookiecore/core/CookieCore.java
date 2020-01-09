@@ -1,50 +1,64 @@
 package be.ephys.cookiecore.core;
 
+import be.ephys.cookiecore.helpers.DebugHelper;
+import be.ephys.cookiecore.registries.FlatPresetRegistry;
+import net.minecraft.block.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.gen.FlatLayerInfo;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.network.NetworkCheckHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Map;
-
-@Mod(
-  modid = CookieCore.MODID,
-  version = CookieCore.VERSION,
-  certificateFingerprint = "@FINGERPRINT@"
-)
+@Mod(CookieCore.MODID)
 public class CookieCore {
   public static final String MODID = "cookiecore";
-  public static final String VERSION = "@VERSION@";
 
-  @Mod.Instance(MODID)
-  public static CookieCore instance;
-
-  @SidedProxy(
-    modId = MODID,
-    serverSide = "be.ephys.cookiecore.core.CommonProxy",
-    clientSide = "be.ephys.cookiecore.core.ClientProxy"
-  )
-  public static CommonProxy sidedProxy;
-
-  private Logger logger = LogManager.getLogger(MODID);
-
+  private static Logger logger = LogManager.getLogger(MODID);
   public static Logger getLogger() {
-    return instance.logger;
+    return logger;
   }
 
-  @EventHandler
-  public void postInit(FMLPostInitializationEvent event) {
-    sidedProxy.postInit();
+  public CookieCore() {
+    FMLJavaModLoadingContext.get().getModEventBus().addListener(this::postInit);
   }
 
-  @NetworkCheckHandler
-  public boolean acceptConnection(Map<String, String> modList, Side side) {
+  public void postInit(FMLClientSetupEvent event) {
 
-    // Mod can be used on both client & server even if the other party doesn't have it installed
-    return true;
+    if (DebugHelper.debug) {
+      // remove unwanted presets in my test worlds
+      FlatPresetRegistry.removeByName("Classic Flat");
+      FlatPresetRegistry.removeByName("Tunnelers' Dream");
+      FlatPresetRegistry.removeByName("Water World");
+      FlatPresetRegistry.removeByName("Overworld");
+      FlatPresetRegistry.removeByName("Snowy Kingdom");
+      FlatPresetRegistry.removeByName("Bottomless Pit");
+      FlatPresetRegistry.removeByName("Desert");
+    }
+
+    // add my own presets
+    FlatPresetRegistry.addPresetAt(0,
+      FlatPresetRegistry.buildPreset(
+        "Cookie Realmn",
+        Item.getItemFromBlock(Blocks.WHITE_TERRACOTTA),
+        0,
+        Biomes.MUSHROOM_FIELDS,
+        null,
+        new FlatLayerInfo[]{
+          new FlatLayerInfo(63, Blocks.WHITE_TERRACOTTA),
+          new FlatLayerInfo(1, Blocks.BEDROCK)
+        }
+      )
+    );
   }
+
+  // TODO
+//  @NetworkCheckHandler
+//  public boolean acceptConnection(Map<String, String> modList, Side side) {
+//
+//    // Mod can be used on both client & server even if the other party doesn't have it installed
+//    return true;
+//  }
 }

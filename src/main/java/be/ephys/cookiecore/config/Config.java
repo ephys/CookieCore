@@ -1,5 +1,7 @@
 package be.ephys.cookiecore.config;
 
+import net.minecraftforge.fml.config.ModConfig;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,9 +15,13 @@ public @interface Config {
 
   boolean requiresWorldRestart() default true;
 
+//  String modId() default "";
+
   String description() default "";
 
   String name() default "";
 
   String category() default "";
+
+  ModConfig.Type type = ModConfig.Type.COMMON;
 }

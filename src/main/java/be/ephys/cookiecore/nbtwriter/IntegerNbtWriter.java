@@ -1,17 +1,17 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.IntNBT;
 
 public class IntegerNbtWriter implements NbtWriter<Integer> {
 
   @Override
-  public NBTBase toNbt(Integer data) {
-    return new NBTTagInt(data);
+  public INBT toNbt(Integer data) {
+    return IntNBT.func_229692_a_(data);
   }
 
   @Override
-  public Integer fromNbt(NBTBase nbt) {
-    return ((NBTTagInt) nbt).getInt();
+  public Integer fromNbt(INBT nbt) {
+    return ((IntNBT) nbt).getInt();
   }
 }

@@ -1,19 +1,19 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
 
 public interface NbtWriter<T> {
 
-  NBTBase toNbt(T data);
+  INBT toNbt(T data);
 
-  T fromNbt(NBTBase nbt);
+  T fromNbt(INBT nbt);
 
-  default void writeToNbt(NBTTagCompound tag, String fieldName, T data) {
-    tag.setTag(fieldName, this.toNbt(data));
+  default void writeToNbt(CompoundNBT tag, String fieldName, T data) {
+    tag.put(fieldName, this.toNbt(data));
   }
 
-  default T readFromNbt(NBTTagCompound tag, String fieldName) {
-    return fromNbt(tag.getTag(fieldName));
+  default T readFromNbt(CompoundNBT tag, String fieldName) {
+    return fromNbt(tag.get(fieldName));
   }
 }

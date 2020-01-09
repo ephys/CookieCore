@@ -1,21 +1,23 @@
 package be.ephys.cookiecore.config;
 
 import be.ephys.cookiecore.core.CookieCore;
+import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.forgespi.language.IModFileInfo;
+import net.minecraftforge.forgespi.language.IModInfo;
+import net.minecraftforge.forgespi.language.ModFileScanData;
+import org.apache.commons.lang3.tuple.Pair;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.ModContainer;
-import net.minecraftforge.fml.common.ModMetadata;
-import net.minecraftforge.fml.common.discovery.ASMDataTable;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.StringUtils;
+import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO support for lists
@@ -26,24 +28,88 @@ import java.util.Set;
  * TODO set validValues for Enums
  * TODO add minValue, maxValue to Config (numbers)
  */
-public class ConfigSynchronizer {
+public final class ConfigSynchronizer {
 
-  private final ModMetadata modMeta;
-  private final Configuration configHandler;
+  private static final Type CONFIG_TYPE = Type.getType(Config.class);
 
-  public static void synchronizeConfig(FMLPreInitializationEvent event) {
-    new ConfigSynchronizer(event);
+  public static Pair<DynamicForgeConfigSpec, ForgeConfigSpec> synchronizeConfig() {
+    ModLoadingContext modLoadingContext = ModLoadingContext.get();
+    String modId = modLoadingContext.getActiveContainer().getModId();
+
+    CookieCore.getLogger().info("Syncing config fields from mod " + modId);
+
+    // ============================================================
+    // step 1: discover configurations
+    // ============================================================
+
+    Set<ModFileScanData.AnnotationData> annotations = null;
+    boolean requiresExplicitModId = false;
+
+    // extract AnnotationData for @Config for a given mod
+    // get all Zip files
+    for (ModFileScanData scanData: ModList.get().getAllScanData()) {
+      boolean isMultiModPackage = false;
+      scanData.getAnnotations();
+
+      List<IModFileInfo> modFileInfos = scanData.getIModInfoData();
+
+      // More than one mod file found in this zip
+      if (modFileInfos.size() > 1) {
+        isMultiModPackage = true;
+      }
+
+      for (IModFileInfo modFileInfo: modFileInfos) {
+        List<IModInfo> mods = modFileInfo.getMods();
+        // More than one mod file found in this class
+        if (mods.size() > 1) {
+          isMultiModPackage = true;
+        }
+
+        for (IModInfo mod: mods) {
+          if (mod.getModId().equals(modId)) {
+            annotations = scanData.getAnnotations();
+            break;
+          }
+        }
+      }
+
+      requiresExplicitModId = isMultiModPackage;
+    }
+
+    if (annotations == null) {
+      CookieCore.getLogger().error("Could not find annotations from mod " + modId);
+      annotations = new HashSet<>();
+    }
+
+    List<ModFileScanData.AnnotationData> configTargets = annotations
+      .stream()
+      .filter(annotationData -> CONFIG_TYPE.equals(annotationData.getAnnotationType()))
+      .collect(Collectors.toList());
+
+    // ==============================================================
+    // step 2: split by COMMON / CLIENT / SERVER config type & build
+    // ==============================================================
+
+    configTargets.get(0).getAnnotationData()
+
+    ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+    final Pair<DynamicForgeConfigSpec, ForgeConfigSpec> specPair = builder.configure(DynamicForgeConfigSpec::new);
+    ForgeConfigSpec spec = specPair.getRight();
+
+    // COMMON
+    // CLIENT
+    // SERVER
+    modLoadingContext.registerConfig(ModConfig.Type.CLIENT, spec);
+
+    return specPair;
+
+//  ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, de.madone.nimox.config.ModConfig.spec);
+//  new ConfigSynchronizer(event);
   }
 
-  public static void synchronizeConfig(FMLPreInitializationEvent event, Configuration configHandler) {
-    new ConfigSynchronizer(event, configHandler);
-  }
+  public static final class DynamicForgeConfigSpec {
+    public DynamicForgeConfigSpec(ForgeConfigSpec.Builder builder) {
 
-  private ConfigSynchronizer(FMLPreInitializationEvent event) {
-    this(event, buildConfigHandler(event));
-
-    if (configHandler.hasChanged()) {
-      configHandler.save();
     }
   }
 

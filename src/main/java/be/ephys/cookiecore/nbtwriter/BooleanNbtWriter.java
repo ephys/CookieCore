@@ -1,17 +1,17 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.nbt.ByteNBT;
+import net.minecraft.nbt.INBT;
 
 public class BooleanNbtWriter implements NbtWriter<Boolean> {
 
   @Override
-  public NBTBase toNbt(Boolean data) {
-    return new NBTTagByte((byte) (data ? 1 : 0));
+  public INBT toNbt(Boolean data) {
+    return ByteNBT.func_229671_a_((byte) (data ? 1 : 0));
   }
 
   @Override
-  public Boolean fromNbt(NBTBase nbt) {
-    return ((NBTTagByte) nbt).getByte() == 1;
+  public Boolean fromNbt(INBT nbt) {
+    return ((ByteNBT) nbt).getByte() == 1;
   }
 }
