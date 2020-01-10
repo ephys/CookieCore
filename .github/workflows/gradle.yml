@@ -14,5 +14,5 @@ jobs:
       env:
         GH_MVN_USERNAME: ${{ secrets.REPO_OWNER }}
         GH_MVN_PASSWORD: ${{ secrets.REPO_KEY }}
-        GIT_HASH: ${{ github.sha:8 }}
+        GIT_HASH: ${{ github.sha }}
       run: ./gradlew publish

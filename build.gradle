@@ -20,7 +20,7 @@ import org.ajoberstar.grgit.Grgit
 def gitHash = 'nogit'
 def githubGitSha = System.getenv('GIT_HASH')
 if (githubGitSha != null && githubGitSha.length() > 0) {
-    gitHash = githubGitSha
+    gitHash = githubGitSha.substring(0, 8)
 } else if (new File(projectDir, '.git').exists()) {
     def repo = Grgit.open(project.file('.'))
     gitHash = repo.log().find().abbreviatedId
