@@ -17,7 +17,7 @@ apply plugin: 'maven-publish'
 
 import org.ajoberstar.grgit.Grgit
 
-def gitHash = 'unknown'
+def gitHash = 'nogit'
 def githubGitSha = System.getenv('GIT_HASH')
 if (githubGitSha != null && githubGitSha.length() > 0) {
     gitHash = githubGitSha
@@ -26,9 +26,9 @@ if (githubGitSha != null && githubGitSha.length() > 0) {
     gitHash = repo.log().find().abbreviatedId
 }
 
-version = "${mc_version}-${mod_version}"
+version = "${gitHash}-${mc_version}-${mod_version}"
 group = package_group
-archivesBaseName = "${mod_name}_${gitHash}"
+archivesBaseName = "${mod_name}"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
