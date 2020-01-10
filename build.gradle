@@ -15,9 +15,20 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
+import org.ajoberstar.grgit.Grgit
+
+def gitHash = 'unknown'
+def githubGitSha = System.getenv('GIT_HASH')
+if (githubGitSha != null && githubGitSha.length() > 0) {
+    gitHash = githubGitSha
+} else if (new File(projectDir, '.git').exists()) {
+    def repo = Grgit.open(project.file('.'))
+    gitHash = repo.log().find().abbreviatedId
+}
+
 version = "${mc_version}-${mod_version}"
-group = package_group // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = mod_name
+group = package_group
+archivesBaseName = "${mod_name}_${gitHash}"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
@@ -114,14 +125,6 @@ dependencies {
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
-
-import org.ajoberstar.grgit.Grgit
-
-def gitHash = 'unknown'
-if (new File(projectDir, '.git').exists()) {
-    def repo = Grgit.open(project.file('.'))
-    gitHash = repo.log().find().abbreviatedId
-}
 
 jar {
     manifest {
