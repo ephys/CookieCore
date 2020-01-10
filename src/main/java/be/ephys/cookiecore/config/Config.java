@@ -17,6 +17,8 @@ public @interface Config {
 
   String description() default "";
 
+  String translationKey() default "";
+
   String name() default "";
 
   ModConfig.Type side() default ModConfig.Type.COMMON;
@@ -37,12 +39,30 @@ public @interface Config {
   @Retention(RetentionPolicy.RUNTIME)
   @interface IntDefault {
     int value();
+
+    int min() default Integer.MIN_VALUE;
+
+    int max() default Integer.MAX_VALUE;
+  }
+
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface LongDefault {
+    long value();
+
+    long min() default Long.MIN_VALUE;
+
+    long max() default Long.MAX_VALUE;
   }
 
   @Target(value = ElementType.FIELD)
   @Retention(RetentionPolicy.RUNTIME)
   @interface DoubleDefault {
     double value();
+
+    double min() default -Double.MAX_VALUE;
+
+    double max() default Double.MAX_VALUE;
   }
 
   @Target(value = ElementType.FIELD)

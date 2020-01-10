@@ -19,10 +19,12 @@ import java.util.stream.Collectors;
 
 /**
  * TODO support for lists
+ * TODO support fields that are not of type ForgeConfigSpec.ConfigValue
+ * - use type & value to generate data & default value
+ * - directly put back the proper value
+ * TODO listeners for config changes
  * TODO add @Config (class annotation) to define defaults (category, restart, etc)
- * TODO add Enum value description support
  * TODO Add @Config.EnumDescription() to provide a description of enums
- * TODO add minValue, maxValue to Config (numbers)
  */
 public final class ConfigSynchronizer {
 
@@ -33,7 +35,7 @@ public final class ConfigSynchronizer {
   private static List<ModFileScanData.AnnotationData> sidedAnnotations = null;
   private static boolean requiresExplicitModId;
 
-  public static Map<ModConfig.Type, Pair<DynamicForgeConfigSpec, ForgeConfigSpec>> synchronizeConfig() {
+  public static Map<ModConfig.Type, ForgeConfigSpec> synchronizeConfig() {
     ModLoadingContext modLoadingContext = ModLoadingContext.get();
     modId = modLoadingContext.getActiveContainer().getModId();
 
@@ -96,7 +98,6 @@ public final class ConfigSynchronizer {
     List<ModFileScanData.AnnotationData> serverConfigTargets = new ArrayList<>();
 
     for (ModFileScanData.AnnotationData configTarget : configTargets) {
-      System.out.println(configTarget.getAnnotationData().keySet().toArray()[0]);
       ModAnnotation.EnumHolder configTypeHolder = (ModAnnotation.EnumHolder) configTarget.getAnnotationData().get("side");
       ModConfig.Type configType = configTypeHolder == null
         ? ModConfig.Type.COMMON
@@ -115,16 +116,24 @@ public final class ConfigSynchronizer {
       commonConfigTargets.add(configTarget);
     }
 
-    Map<ModConfig.Type, Pair<DynamicForgeConfigSpec, ForgeConfigSpec>> specPairMap = new HashMap<>();
+    Map<ModConfig.Type, ForgeConfigSpec> specPairMap = new HashMap<>();
 
-    specPairMap.put(ModConfig.Type.COMMON, buildAndRegisterConfig(ModConfig.Type.COMMON, commonConfigTargets));
-    specPairMap.put(ModConfig.Type.CLIENT, buildAndRegisterConfig(ModConfig.Type.CLIENT, clientConfigTargets));
-    specPairMap.put(ModConfig.Type.SERVER, buildAndRegisterConfig(ModConfig.Type.SERVER, serverConfigTargets));
+    if (commonConfigTargets.size() > 0) {
+      specPairMap.put(ModConfig.Type.COMMON, buildAndRegisterConfig(ModConfig.Type.COMMON, commonConfigTargets));
+    }
+
+    if (clientConfigTargets.size() > 0) {
+      specPairMap.put(ModConfig.Type.CLIENT, buildAndRegisterConfig(ModConfig.Type.CLIENT, clientConfigTargets));
+    }
+
+    if (serverConfigTargets.size() > 0) {
+      specPairMap.put(ModConfig.Type.SERVER, buildAndRegisterConfig(ModConfig.Type.SERVER, serverConfigTargets));
+    }
 
     return specPairMap;
   }
 
-  private static Pair<DynamicForgeConfigSpec, ForgeConfigSpec> buildAndRegisterConfig(
+  private static ForgeConfigSpec buildAndRegisterConfig(
     ModConfig.Type configType,
     List<ModFileScanData.AnnotationData> configFields
   ) {
@@ -136,7 +145,7 @@ public final class ConfigSynchronizer {
 
     ModLoadingContext.get().registerConfig(configType, spec);
 
-    return specPair;
+    return spec;
   }
 
   private static <E extends Enum<E>> ForgeConfigSpec.ConfigValue<?> defineConfigValue(ForgeConfigSpec.Builder builder, String name, Field field) {
@@ -157,14 +166,23 @@ public final class ConfigSynchronizer {
     {
       Config.IntDefault annotationInt = field.getAnnotation(Config.IntDefault.class);
       if (annotationInt != null) {
-        return builder.define(name, annotationInt.value());
+        // defineInRange
+        return builder.defineInRange(name, annotationInt.value(), annotationInt.min(), annotationInt.max());
+      }
+    }
+
+    {
+      Config.LongDefault annotation = field.getAnnotation(Config.LongDefault.class);
+      if (annotation != null) {
+        // defineInRange
+        return builder.defineInRange(name, annotation.value(), annotation.min(), annotation.max());
       }
     }
 
     {
       Config.DoubleDefault annotationDouble = field.getAnnotation(Config.DoubleDefault.class);
       if (annotationDouble != null) {
-        return builder.define(name, annotationDouble.value());
+        return builder.defineInRange(name, annotationDouble.value(), annotationDouble.min(), annotationDouble.max());
       }
     }
 
@@ -240,6 +258,10 @@ public final class ConfigSynchronizer {
 
         ForgeConfigSpec.Builder builder = rootBuilder
           .comment(configMeta.description());
+
+        if (!configMeta.translationKey().isEmpty()) {
+          builder = builder.translation(configMeta.translationKey());
+        }
 
         if (configMeta.requiresWorldRestart()) {
           builder = builder.worldRestart();
