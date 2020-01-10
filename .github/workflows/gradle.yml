@@ -11,4 +11,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Gradle
+      env:
+        GH_MVN_USERNAME: ${{ secrets.REPO_OWNER }}
+        GH_MVN_PASSWORD: ${{ secrets.REPO_KEY }}
       run: ./gradlew publish
