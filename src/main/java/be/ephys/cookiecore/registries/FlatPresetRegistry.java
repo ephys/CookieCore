@@ -1,7 +1,7 @@
 package be.ephys.cookiecore.registries;
 
 import net.minecraft.client.gui.screen.FlatPresetsScreen;
-import net.minecraft.item.Item;
+import net.minecraft.util.IItemProvider;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.FlatLayerInfo;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,15 +22,18 @@ public class FlatPresetRegistry {
   }
 
   public static FlatPresetsScreen.LayerItem buildPreset(
-    String name, Item icon, int iconMeta, Biome biome,
-    List<String> structures, FlatLayerInfo[] layers
+    String name,
+    IItemProvider icon,
+    Biome biome,
+    List<String> structures,
+    FlatLayerInfo[] layers
   ) {
 
     if (structures == null) {
       structures = Collections.emptyList();
     }
 
-    FlatPresetsScreen.registerPreset(name, icon, iconMeta, biome, structures, layers);
+    FlatPresetsScreen.addPreset(name, icon, biome, structures, layers);
 
     return FlatPresetsScreen.FLAT_WORLD_PRESETS.remove(presetCount() - 1);
   }

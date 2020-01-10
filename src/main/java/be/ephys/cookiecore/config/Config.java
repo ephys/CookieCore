@@ -19,27 +19,37 @@ public @interface Config {
 
   String name() default "";
 
-  ModConfig.Type type = ModConfig.Type.COMMON;
+  ModConfig.Type side() default ModConfig.Type.COMMON;
 
-  @interface StringType {
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface StringDefault {
     String value();
   }
 
-  @interface BooleanType {
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface BooleanDefault {
     boolean value();
   }
 
-  @interface IntType {
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface IntDefault {
     int value();
   }
 
-  @interface DoubleType {
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface DoubleDefault {
     double value();
   }
 
-  @interface EnumType {
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface EnumDefault {
     String value();
 
-    Class<? extends Enum> enumType();
+    Class<? extends Enum<?>> enumType();
   }
 }

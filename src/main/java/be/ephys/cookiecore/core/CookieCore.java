@@ -1,12 +1,15 @@
 package be.ephys.cookiecore.core;
 
+import be.ephys.cookiecore.config.Config;
+import be.ephys.cookiecore.config.ConfigSynchronizer;
 import be.ephys.cookiecore.helpers.DebugHelper;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
@@ -17,11 +20,18 @@ public class CookieCore {
   public static final String MODID = "cookiecore";
 
   private static Logger logger = LogManager.getLogger(MODID);
+
+  @Config(description = "Enable the CookieRealm Flat world preset", side = ModConfig.Type.CLIENT)
+  @Config.BooleanDefault(true)
+  public static ForgeConfigSpec.BooleanValue enableTerracottaWorldPreset;
+
   public static Logger getLogger() {
     return logger;
   }
 
   public CookieCore() {
+    ConfigSynchronizer.synchronizeConfig();
+
     FMLJavaModLoadingContext.get().getModEventBus().addListener(this::postInit);
   }
 
@@ -39,19 +49,20 @@ public class CookieCore {
     }
 
     // add my own presets
-    FlatPresetRegistry.addPresetAt(0,
-      FlatPresetRegistry.buildPreset(
-        "Cookie Realmn",
-        Item.getItemFromBlock(Blocks.WHITE_TERRACOTTA),
-        0,
-        Biomes.MUSHROOM_FIELDS,
-        null,
-        new FlatLayerInfo[]{
-          new FlatLayerInfo(63, Blocks.WHITE_TERRACOTTA),
-          new FlatLayerInfo(1, Blocks.BEDROCK)
-        }
-      )
-    );
+    if (enableTerracottaWorldPreset.get()) {
+      FlatPresetRegistry.addPresetAt(0,
+        FlatPresetRegistry.buildPreset(
+          "Cookie Realm",
+          Blocks.WHITE_TERRACOTTA,
+          Biomes.MUSHROOM_FIELDS,
+          null,
+          new FlatLayerInfo[]{
+            new FlatLayerInfo(63, Blocks.WHITE_TERRACOTTA),
+            new FlatLayerInfo(1, Blocks.BEDROCK)
+          }
+        )
+      );
+    }
   }
 
   // TODO

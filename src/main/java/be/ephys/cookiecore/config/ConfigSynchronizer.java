@@ -5,6 +5,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.moddiscovery.ModAnnotation;
 import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.forgespi.language.ModFileScanData;
@@ -13,19 +14,14 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * TODO support for lists
  * TODO add @Config (class annotation) to define defaults (category, restart, etc)
- * TODO add @OnConfigChange (method annotation) to call when a field changes value (field name, new value, old value)
- * TODO on config change, update field value
  * TODO add Enum value description support
- * TODO set validValues for Enums
+ * TODO Add @Config.EnumDescription() to provide a description of enums
  * TODO add minValue, maxValue to Config (numbers)
  */
 public final class ConfigSynchronizer {
@@ -37,7 +33,7 @@ public final class ConfigSynchronizer {
   private static List<ModFileScanData.AnnotationData> sidedAnnotations = null;
   private static boolean requiresExplicitModId;
 
-  public static Pair<DynamicForgeConfigSpec, ForgeConfigSpec> synchronizeConfig() {
+  public static Map<ModConfig.Type, Pair<DynamicForgeConfigSpec, ForgeConfigSpec>> synchronizeConfig() {
     ModLoadingContext modLoadingContext = ModLoadingContext.get();
     modId = modLoadingContext.getActiveContainer().getModId();
 
@@ -52,7 +48,7 @@ public final class ConfigSynchronizer {
 
     // extract AnnotationData for @Config for a given mod
     // get all Zip files
-    for (ModFileScanData scanData: ModList.get().getAllScanData()) {
+    for (ModFileScanData scanData : ModList.get().getAllScanData()) {
       boolean isMultiModPackage = false;
       scanData.getAnnotations();
 
@@ -63,14 +59,14 @@ public final class ConfigSynchronizer {
         isMultiModPackage = true;
       }
 
-      for (IModFileInfo modFileInfo: modFileInfos) {
+      for (IModFileInfo modFileInfo : modFileInfos) {
         List<IModInfo> mods = modFileInfo.getMods();
         // More than one mod file found in this class
         if (mods.size() > 1) {
           isMultiModPackage = true;
         }
 
-        for (IModInfo mod: mods) {
+        for (IModInfo mod : mods) {
           if (mod.getModId().equals(modId)) {
             annotations = scanData.getAnnotations();
             break;
@@ -95,39 +91,133 @@ public final class ConfigSynchronizer {
     // step 2: split by COMMON / CLIENT / SERVER config type & build
     // ==============================================================
 
-    // TODO: split by side
-    // COMMON
-    // CLIENT
-    // SERVER
+    List<ModFileScanData.AnnotationData> commonConfigTargets = new ArrayList<>();
+    List<ModFileScanData.AnnotationData> clientConfigTargets = new ArrayList<>();
+    List<ModFileScanData.AnnotationData> serverConfigTargets = new ArrayList<>();
 
-    sidedAnnotations = configTargets;
+    for (ModFileScanData.AnnotationData configTarget : configTargets) {
+      System.out.println(configTarget.getAnnotationData().keySet().toArray()[0]);
+      ModAnnotation.EnumHolder configTypeHolder = (ModAnnotation.EnumHolder) configTarget.getAnnotationData().get("side");
+      ModConfig.Type configType = configTypeHolder == null
+        ? ModConfig.Type.COMMON
+        : ModConfig.Type.valueOf(configTypeHolder.getValue());
+
+      if (configType == ModConfig.Type.SERVER) {
+        serverConfigTargets.add(configTarget);
+        continue;
+      }
+
+      if (configType == ModConfig.Type.CLIENT) {
+        clientConfigTargets.add(configTarget);
+        continue;
+      }
+
+      commonConfigTargets.add(configTarget);
+    }
+
+    Map<ModConfig.Type, Pair<DynamicForgeConfigSpec, ForgeConfigSpec>> specPairMap = new HashMap<>();
+
+    specPairMap.put(ModConfig.Type.COMMON, buildAndRegisterConfig(ModConfig.Type.COMMON, commonConfigTargets));
+    specPairMap.put(ModConfig.Type.CLIENT, buildAndRegisterConfig(ModConfig.Type.CLIENT, clientConfigTargets));
+    specPairMap.put(ModConfig.Type.SERVER, buildAndRegisterConfig(ModConfig.Type.SERVER, serverConfigTargets));
+
+    return specPairMap;
+  }
+
+  private static Pair<DynamicForgeConfigSpec, ForgeConfigSpec> buildAndRegisterConfig(
+    ModConfig.Type configType,
+    List<ModFileScanData.AnnotationData> configFields
+  ) {
+    sidedAnnotations = configFields;
 
     ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
     final Pair<DynamicForgeConfigSpec, ForgeConfigSpec> specPair = builder.configure(DynamicForgeConfigSpec::new);
     ForgeConfigSpec spec = specPair.getRight();
 
-
-    modLoadingContext.registerConfig(ModConfig.Type.CLIENT, spec);
+    ModLoadingContext.get().registerConfig(configType, spec);
 
     return specPair;
+  }
+
+  private static <E extends Enum<E>> ForgeConfigSpec.ConfigValue<?> defineConfigValue(ForgeConfigSpec.Builder builder, String name, Field field) {
+    {
+      Config.StringDefault annotationString = field.getAnnotation(Config.StringDefault.class);
+      if (annotationString != null) {
+        return builder.define(name, annotationString.value());
+      }
+    }
+
+    {
+      Config.BooleanDefault annotationBoolean = field.getAnnotation(Config.BooleanDefault.class);
+      if (annotationBoolean != null) {
+        return builder.define(name, annotationBoolean.value());
+      }
+    }
+
+    {
+      Config.IntDefault annotationInt = field.getAnnotation(Config.IntDefault.class);
+      if (annotationInt != null) {
+        return builder.define(name, annotationInt.value());
+      }
+    }
+
+    {
+      Config.DoubleDefault annotationDouble = field.getAnnotation(Config.DoubleDefault.class);
+      if (annotationDouble != null) {
+        return builder.define(name, annotationDouble.value());
+      }
+    }
+
+    {
+      Config.EnumDefault annotationEnum = field.getAnnotation(Config.EnumDefault.class);
+      if (annotationEnum != null) {
+        @SuppressWarnings("unchecked")
+        Class<E> enumClass = (Class<E>) annotationEnum.enumType();
+
+        E defaultValue = getEnum(enumClass, annotationEnum.value());
+        Collection<E> acceptableValues = getEnums(enumClass);
+
+        return builder.defineEnum(name, defaultValue, acceptableValues);
+      }
+    }
+
+    CookieCore.getLogger().error(
+      "Failed to determine type of config field "
+        + field.getDeclaringClass().getName() + " " + field.getName()
+        + ". Please specify it using one of the available @Config.<type>Default annotations");
+
+    return null;
+  }
+
+  private static <T extends Enum<T>> EnumSet<T> getEnums(Class<T> aClass) {
+    return EnumSet.allOf(aClass);
+  }
+
+//  private static boolean isEnum(Class<?> aClass) {
+//    return Enum.class.isAssignableFrom(aClass);
+//  }
+
+  private static <T extends Enum<T>> T getEnum(Class<T> aClass, String enumName) {
+    return Enum.valueOf(aClass, enumName);
   }
 
   public static final class DynamicForgeConfigSpec {
     public DynamicForgeConfigSpec(final ForgeConfigSpec.Builder rootBuilder) {
       for (ModFileScanData.AnnotationData annotation : sidedAnnotations) {
 
-        // TODO: config fields must be of type ForgeConfigSpec.ConfigValue<>
-
         Field field;
         try {
-          Class clazz = Class.forName(annotation.getClassType().getClassName());
+          Class<?> clazz = Class.forName(annotation.getClassType().getClassName());
           field = clazz.getField(annotation.getMemberName());
         } catch (ClassNotFoundException | NoSuchFieldException e) {
           throw new RuntimeException("Failed to load config for mod " + modId, e);
         }
 
-        if (!ForgeConfigSpec.ConfigValue.class.isAssignableFrom(field.getDeclaringClass())) {
-          throw new RuntimeException("Failed to load config: @Config can only be used on fields of type ForgeConfigSpec.ConfigValue");
+        // java.lang.RuntimeException: Failed to load config: @Config can only be used on fields of type ForgeConfigSpec.ConfigValue.
+        // Got net.minecraftforge.common.ForgeConfigSpec$BooleanValue
+        // (field be.ephys.cookiecore.core.CookieCore enableTerracottaWorldPreset)
+        if (!ForgeConfigSpec.ConfigValue.class.isAssignableFrom(field.getType())) {
+          throw new RuntimeException("Failed to load config: @Config can only be used on fields of type ForgeConfigSpec.ConfigValue.\n-> Got " + field.getType().getName() + ".\n-> Field: " + field.getDeclaringClass().getName() + " " + field.getName());
         }
 
         if (!Modifier.isStatic(field.getModifiers())) {
@@ -155,28 +245,19 @@ public final class ConfigSynchronizer {
           builder = builder.worldRestart();
         }
 
-        // TODO:
-        //  - Check the various Config.x annotations & assign the right type
-//        ForgeConfigSpec.ConfigValue configValue = builder.define(configMeta.name());
+        String fieldName = configMeta.name();
+        if (fieldName.isEmpty()) {
+          fieldName = field.getName();
+        }
+
+        ForgeConfigSpec.ConfigValue<?> configValue = defineConfigValue(builder, fieldName, field);
 
         try {
-          field.set(null, builder);
+          field.set(null, configValue);
         } catch (IllegalAccessException e) {
           throw new RuntimeException(e);
         }
       }
     }
-  }
-
-  private static boolean isEnum(Class<?> aClass) {
-    return Enum.class.isAssignableFrom(aClass);
-  }
-
-  private static EnumSet getEnums(Class aClass) {
-    return EnumSet.allOf(aClass);
-  }
-
-  private static Enum getEnum(Class aClass, String enumName) {
-    return Enum.valueOf(aClass, enumName);
   }
 }
