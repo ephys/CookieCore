@@ -126,7 +126,7 @@ if (new File(projectDir, '.git').exists()) {
 jar {
     manifest {
         attributes([
-            "Specification-Title": mod_name,
+            "Specification-Title": project.name,
             "Specification-Vendor": "ephys",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,
@@ -150,15 +150,39 @@ def reobfArtifact = artifacts.add('default', reobfFile) {
     type 'jar'
     builtBy 'reobfJar'
 }
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task deobfJar(type: Jar) {
+    classifier = 'deobf'
+    from sourceSets.main.output
+}
+
+tasks.build.dependsOn sourcesJar, deobfJar
+
 publishing {
+    tasks.publish.dependsOn 'build'
+
     publications {
         mavenJava(MavenPublication) {
+            artifactId project.archivesBaseName
+
             artifact reobfArtifact
+            artifact deobfJar
+            artifact sourcesJar
         }
     }
     repositories {
         maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ephys/cookiecore")
+            credentials {
+                username = project.findProperty("gpr.user") as String ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") as String ?: System.getenv("PASSWORD")
+            }
         }
     }
 }
