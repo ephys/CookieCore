@@ -30,14 +30,9 @@ public final class ConfigSynchronizer {
 
   private static final Type CONFIG_TYPE = Type.getType(Config.class);
 
-  // TODO move to instance
-  private static String modId;
-  private static List<ModFileScanData.AnnotationData> sidedAnnotations = null;
-  private static boolean requiresExplicitModId;
-
   public static Map<ModConfig.Type, ForgeConfigSpec> synchronizeConfig() {
     ModLoadingContext modLoadingContext = ModLoadingContext.get();
-    modId = modLoadingContext.getActiveContainer().getModId();
+    String modId = modLoadingContext.getActiveContainer().getModId();
 
     CookieCore.getLogger().info("Syncing config fields from mod " + modId);
 
@@ -46,7 +41,7 @@ public final class ConfigSynchronizer {
     // ============================================================
 
     Set<ModFileScanData.AnnotationData> annotations = null;
-    requiresExplicitModId = false;
+    boolean requiresExplicitModId = false;
 
     // extract AnnotationData for @Config for a given mod
     // get all Zip files
@@ -119,31 +114,31 @@ public final class ConfigSynchronizer {
     Map<ModConfig.Type, ForgeConfigSpec> specPairMap = new HashMap<>();
 
     if (commonConfigTargets.size() > 0) {
-      specPairMap.put(ModConfig.Type.COMMON, buildAndRegisterConfig(ModConfig.Type.COMMON, commonConfigTargets));
+      specPairMap.put(ModConfig.Type.COMMON, buildAndRegisterConfig(modId, requiresExplicitModId, ModConfig.Type.COMMON, commonConfigTargets));
     }
 
     if (clientConfigTargets.size() > 0) {
-      specPairMap.put(ModConfig.Type.CLIENT, buildAndRegisterConfig(ModConfig.Type.CLIENT, clientConfigTargets));
+      specPairMap.put(ModConfig.Type.CLIENT, buildAndRegisterConfig(modId, requiresExplicitModId, ModConfig.Type.CLIENT, clientConfigTargets));
     }
 
     if (serverConfigTargets.size() > 0) {
-      specPairMap.put(ModConfig.Type.SERVER, buildAndRegisterConfig(ModConfig.Type.SERVER, serverConfigTargets));
+      specPairMap.put(ModConfig.Type.SERVER, buildAndRegisterConfig(modId, requiresExplicitModId, ModConfig.Type.SERVER, serverConfigTargets));
     }
 
     return specPairMap;
   }
 
   private static ForgeConfigSpec buildAndRegisterConfig(
+    String modId,
+    boolean requiresExplicitModId,
     ModConfig.Type configType,
     List<ModFileScanData.AnnotationData> configFields
   ) {
-    sidedAnnotations = configFields;
 
-    ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
-    final Pair<DynamicForgeConfigSpec, ForgeConfigSpec> specPair = builder.configure(DynamicForgeConfigSpec::new);
-    ForgeConfigSpec spec = specPair.getRight();
+    DynamicForgeConfigSpec configSpec = new DynamicForgeConfigSpec(modId, configFields, requiresExplicitModId);
+    ForgeConfigSpec spec = configSpec.buildSpec();
 
-    ModLoadingContext.get().registerConfig(configType, spec);
+    ModLoadingContext.get().registerConfig(configType, configSpec.buildSpec());
 
     return spec;
   }
@@ -220,8 +215,24 @@ public final class ConfigSynchronizer {
   }
 
   public static final class DynamicForgeConfigSpec {
-    public DynamicForgeConfigSpec(final ForgeConfigSpec.Builder rootBuilder) {
-      for (ModFileScanData.AnnotationData annotation : sidedAnnotations) {
+    private final List<ModFileScanData.AnnotationData> configFields;
+    private final String modId;
+    private final boolean requiresExplicitModId;
+
+    public DynamicForgeConfigSpec(String modId, List<ModFileScanData.AnnotationData> configFields, boolean requiresExplicitModId) {
+      this.configFields = configFields;
+      this.modId = modId;
+      this.requiresExplicitModId = requiresExplicitModId;
+    }
+
+    public ForgeConfigSpec buildSpec() {
+      ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+      final Pair<DynamicForgeConfigSpec, ForgeConfigSpec> specPair = builder.configure(this::build);
+      return specPair.getRight();
+    }
+
+    private DynamicForgeConfigSpec build(final ForgeConfigSpec.Builder rootBuilder) {
+      for (ModFileScanData.AnnotationData annotation : configFields) {
 
         Field field;
         try {
@@ -246,12 +257,13 @@ public final class ConfigSynchronizer {
 
         Config configMeta = field.getAnnotation(Config.class);
 
-        if (requiresExplicitModId) {
+        if (this.requiresExplicitModId) {
           if (configMeta.modId().length() == 0) {
-            CookieCore.getLogger().error("@Config Failed to determine modId for fields in class " + field.getDeclaringClass().getCanonicalName());
+            throw new RuntimeException("@Config Failed to determine modId for fields in class " + field.getDeclaringClass().getCanonicalName());
           }
 
-          if (!configMeta.modId().equals(ConfigSynchronizer.modId)) {
+          if (!configMeta.modId().equals(this.modId)) {
+            CookieCore.getLogger().error("skipping field");
             continue;
           }
         }
@@ -274,12 +286,15 @@ public final class ConfigSynchronizer {
 
         ForgeConfigSpec.ConfigValue<?> configValue = defineConfigValue(builder, fieldName, field);
 
+        CookieCore.getLogger().error("setting field " + fieldName + "\n->" + field.getDeclaringClass().getName() + "." + field.getName());
         try {
           field.set(null, configValue);
         } catch (IllegalAccessException e) {
           throw new RuntimeException(e);
         }
       }
+
+      return this;
     }
   }
 }
