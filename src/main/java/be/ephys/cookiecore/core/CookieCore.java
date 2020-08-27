@@ -7,6 +7,7 @@ import be.ephys.cookiecore.registries.banner.BannerRecipeProvider;
 import be.ephys.cookiecore.registries.banner.BannerRegistry;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.item.PaintingType;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -14,11 +15,14 @@ import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +47,13 @@ public class CookieCore {
 
     modBus.addListener(this::commonSetup);
     modBus.addListener(this::postInit);
+
+    PAINTING_TYPES.register(modBus);
   }
+
+  // TODO Move to own feature
+  public static DeferredRegister<PaintingType> PAINTING_TYPES = DeferredRegister.create(ForgeRegistries.PAINTING_TYPES, CookieCore.MODID);
+  public static RegistryObject<PaintingType> PAINTING_ZEN = PAINTING_TYPES.register("zen",()-> new PaintingType(16, 32));
 
   public void commonSetup(FMLCommonSetupEvent event) {
     getLogger().info("COOKIE CORE COMMON SETUP");
