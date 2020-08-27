@@ -7,7 +7,7 @@ public class StringNbtWriter implements NbtWriter<String> {
 
   @Override
   public INBT toNbt(String data) {
-    return StringNBT.func_229705_a_(data);
+    return StringNBT.valueOf(data);
   }
 
   @Override

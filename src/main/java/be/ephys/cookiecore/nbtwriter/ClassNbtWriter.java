@@ -7,7 +7,7 @@ public class ClassNbtWriter implements NbtWriter<Class> {
 
   @Override
   public INBT toNbt(Class data) {
-    return StringNBT.func_229705_a_(data.getCanonicalName());
+    return StringNBT.valueOf(data.getCanonicalName());
   }
 
   @Override

@@ -5,6 +5,7 @@ import be.ephys.cookiecore.config.ConfigSynchronizer;
 import be.ephys.cookiecore.helpers.DebugHelper;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
 import net.minecraft.block.Blocks;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -39,23 +40,27 @@ public class CookieCore {
 
     if (DebugHelper.debug) {
       // remove unwanted presets in my test worlds
-      FlatPresetRegistry.removeByName("Classic Flat");
-      FlatPresetRegistry.removeByName("Tunnelers' Dream");
-      FlatPresetRegistry.removeByName("Water World");
-      FlatPresetRegistry.removeByName("Overworld");
-      FlatPresetRegistry.removeByName("Snowy Kingdom");
-      FlatPresetRegistry.removeByName("Bottomless Pit");
-      FlatPresetRegistry.removeByName("Desert");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.classic_flat");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.tunnelers_dream");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.water_world");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.overworld");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.snowy_kingdom");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.bottomless_pit");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.desert");
+      FlatPresetRegistry.removeByName("createWorld.customize.preset.the_void");
     }
 
     // add my own presets
     if (enableTerracottaWorldPreset.get()) {
       FlatPresetRegistry.addPresetAt(0,
         FlatPresetRegistry.buildPreset(
-          "Cookie Realm",
+          new TranslationTextComponent("cookiecore.superflat.cookie_realmn"),
           Blocks.WHITE_TERRACOTTA,
           Biomes.MUSHROOM_FIELDS,
           null,
+          false,
+          false,
+          false,
           new FlatLayerInfo[]{
             new FlatLayerInfo(63, Blocks.WHITE_TERRACOTTA),
             new FlatLayerInfo(1, Blocks.BEDROCK)

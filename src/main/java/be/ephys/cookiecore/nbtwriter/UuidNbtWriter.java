@@ -10,11 +10,11 @@ public class UuidNbtWriter implements NbtWriter<UUID> {
 
   @Override
   public INBT toNbt(UUID data) {
-    return NBTUtil.writeUniqueId(data);
+    return NBTUtil.func_240626_a_(data);
   }
 
   @Override
   public UUID fromNbt(INBT nbt) {
-    return NBTUtil.readUniqueId((CompoundNBT) nbt);
+    return NBTUtil.readUniqueId(nbt);
   }
 }

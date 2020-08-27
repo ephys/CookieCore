@@ -1,6 +1,7 @@
 package be.ephys.cookiecore.helpers;
 
 import be.ephys.cookiecore.core.CookieCore;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public final class DebugHelper {
@@ -9,7 +10,7 @@ public final class DebugHelper {
 
   private static boolean getDebug() {
     try {
-      World.class.getMethod("getBlockState", Integer.TYPE, Integer.TYPE, Integer.TYPE);
+      World.class.getMethod("getBlockState", BlockPos.class);
       CookieCore.getLogger().info("Dev environnement detected");
       return true;
     } catch (Exception e) {

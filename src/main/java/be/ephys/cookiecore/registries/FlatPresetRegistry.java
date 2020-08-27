@@ -2,8 +2,12 @@ package be.ephys.cookiecore.registries;
 
 import net.minecraft.client.gui.screen.FlatPresetsScreen;
 import net.minecraft.util.IItemProvider;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.FlatLayerInfo;
+import net.minecraft.world.gen.feature.structure.Structure;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -22,10 +26,13 @@ public class FlatPresetRegistry {
   }
 
   public static FlatPresetsScreen.LayerItem buildPreset(
-    String name,
+    ITextComponent name,
     IItemProvider icon,
-    Biome biome,
-    List<String> structures,
+    RegistryKey<Biome> biome,
+    List<Structure<?>> structures,
+    boolean p_238640_4_,
+    boolean p_238640_5_,
+    boolean p_238640_6_,
     FlatLayerInfo[] layers
   ) {
 
@@ -33,14 +40,20 @@ public class FlatPresetRegistry {
       structures = Collections.emptyList();
     }
 
-    FlatPresetsScreen.addPreset(name, icon, biome, structures, layers);
+    FlatPresetsScreen.func_238640_a_(name, icon, biome, structures, p_238640_4_, p_238640_5_, p_238640_6_, layers);
 
     return FlatPresetsScreen.FLAT_WORLD_PRESETS.remove(presetCount() - 1);
   }
 
   public static FlatPresetsScreen.LayerItem removeByName(String name) {
+    return removeByName(new TranslationTextComponent(name));
+  }
+
+  public static FlatPresetsScreen.LayerItem removeByName(ITextComponent name) {
     for (int i = 0; i < presetCount(); i++) {
       FlatPresetsScreen.LayerItem preset = FlatPresetsScreen.FLAT_WORLD_PRESETS.get(i);
+
+      System.out.println(preset.name.getString());
 
       if (preset.name.equals(name)) {
         return FlatPresetsScreen.FLAT_WORLD_PRESETS.remove(i);
@@ -50,7 +63,7 @@ public class FlatPresetRegistry {
     return null;
   }
 
-  public static FlatPresetsScreen.LayerItem getByName(String name) {
+  public static FlatPresetsScreen.LayerItem getByName(ITextComponent name) {
     for (int i = 0; i < presetCount(); i++) {
       FlatPresetsScreen.LayerItem preset = FlatPresetsScreen.FLAT_WORLD_PRESETS.get(i);
 

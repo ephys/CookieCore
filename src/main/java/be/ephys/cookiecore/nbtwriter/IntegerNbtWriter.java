@@ -7,7 +7,7 @@ public class IntegerNbtWriter implements NbtWriter<Integer> {
 
   @Override
   public INBT toNbt(Integer data) {
-    return IntNBT.func_229692_a_(data);
+    return IntNBT.valueOf(data);
   }
 
   @Override
