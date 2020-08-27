@@ -3,15 +3,21 @@ package be.ephys.cookiecore.core;
 import be.ephys.cookiecore.config.Config;
 import be.ephys.cookiecore.config.ConfigSynchronizer;
 import be.ephys.cookiecore.helpers.DebugHelper;
+import be.ephys.cookiecore.registries.banner.BannerRecipeProvider;
+import be.ephys.cookiecore.registries.banner.BannerRegistry;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
 import net.minecraft.block.Blocks;
+import net.minecraft.item.Items;
+import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 public class CookieCore {
   public static final String MODID = "cookiecore";
 
-  private static Logger logger = LogManager.getLogger(MODID);
+  private static final Logger logger = LogManager.getLogger(MODID);
 
   @Config(description = "Enable the CookieRealm Flat world preset", side = ModConfig.Type.CLIENT)
   @Config.BooleanDefault(true)
@@ -33,7 +39,16 @@ public class CookieCore {
   public CookieCore() {
     ConfigSynchronizer.synchronizeConfig();
 
-    FMLJavaModLoadingContext.get().getModEventBus().addListener(this::postInit);
+    IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+    modBus.addListener(this::commonSetup);
+    modBus.addListener(this::postInit);
+  }
+
+  public void commonSetup(FMLCommonSetupEvent event) {
+    getLogger().info("COOKIE CORE COMMON SETUP");
+    BannerRegistry.addPattern("cc_fox", "cc_fox", Items.IRON_SWORD);
+    BannerRegistry.addPattern("cc_dino", "cc_dino", Items.GOLDEN_SWORD);
   }
 
   public void postInit(FMLClientSetupEvent event) {

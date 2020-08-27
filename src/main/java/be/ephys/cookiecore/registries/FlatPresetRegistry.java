@@ -53,8 +53,6 @@ public class FlatPresetRegistry {
     for (int i = 0; i < presetCount(); i++) {
       FlatPresetsScreen.LayerItem preset = FlatPresetsScreen.FLAT_WORLD_PRESETS.get(i);
 
-      System.out.println(preset.name.getString());
-
       if (preset.name.equals(name)) {
         return FlatPresetsScreen.FLAT_WORLD_PRESETS.remove(i);
       }
