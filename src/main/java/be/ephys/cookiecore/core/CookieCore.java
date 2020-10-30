@@ -3,13 +3,11 @@ package be.ephys.cookiecore.core;
 import be.ephys.cookiecore.config.Config;
 import be.ephys.cookiecore.config.ConfigSynchronizer;
 import be.ephys.cookiecore.helpers.DebugHelper;
-import be.ephys.cookiecore.registries.banner.BannerRecipeProvider;
 import be.ephys.cookiecore.registries.banner.BannerRegistry;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.PaintingType;
 import net.minecraft.item.Items;
-import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
@@ -56,7 +54,6 @@ public class CookieCore {
   public static RegistryObject<PaintingType> PAINTING_ZEN = PAINTING_TYPES.register("zen",()-> new PaintingType(16, 32));
 
   public void commonSetup(FMLCommonSetupEvent event) {
-    getLogger().info("COOKIE CORE COMMON SETUP");
     BannerRegistry.addPattern("cc_fox", "cc_fox", Items.IRON_SWORD);
     BannerRegistry.addPattern("cc_dino", "cc_dino", Items.GOLDEN_SWORD);
   }
