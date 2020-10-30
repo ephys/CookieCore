@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[33,)"
+loaderVersion="[32,)"
 license="MIT"
 issueTrackerURL="https://github.com/Ephys/CookieCore/issues"
 [[mods]]
@@ -17,12 +17,12 @@ NBT Utilities
 [[dependencies.cookiecore]]
     modId="forge"
     mandatory=true
-    versionRange="[33,)"
+    versionRange="[32,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.cookiecore]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16,)"
+    versionRange="[1.16.1,)"
     ordering="NONE"
     side="BOTH"

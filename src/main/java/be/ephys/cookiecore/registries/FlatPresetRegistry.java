@@ -28,7 +28,7 @@ public class FlatPresetRegistry {
   public static FlatPresetsScreen.LayerItem buildPreset(
     ITextComponent name,
     IItemProvider icon,
-    RegistryKey<Biome> biome,
+    Biome biome,
     List<Structure<?>> structures,
     boolean p_238640_4_,
     boolean p_238640_5_,
