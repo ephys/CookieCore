@@ -7,7 +7,6 @@ import be.ephys.cookiecore.registries.banner.BannerRegistry;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.PaintingType;
-import net.minecraft.item.Items;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
@@ -54,8 +53,7 @@ public class CookieCore {
   public static RegistryObject<PaintingType> PAINTING_ZEN = PAINTING_TYPES.register("zen",()-> new PaintingType(16, 32));
 
   public void commonSetup(FMLCommonSetupEvent event) {
-    BannerRegistry.addPattern("cc_fox", "cc_fox", Items.IRON_SWORD);
-    BannerRegistry.addPattern("cc_dino", "cc_dino", Items.GOLDEN_SWORD);
+    BannerRegistry.addPattern("cc_dino", "cc_dino", Blocks.BONE_BLOCK);
   }
 
   public void postInit(FMLClientSetupEvent event) {
