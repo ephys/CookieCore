@@ -23,11 +23,7 @@ public class BannerTextures {
 
     for (BannerPattern pattern : BannerPattern.values()) {
 
-      System.out.println("banner:" + pattern.getFileName());
-
       if (pattern.getFileName().startsWith("cc_")) {
-        System.out.println("loading");
-
         // func_226957_a_ = getTextureLocation
         materials.add(new RenderMaterial(Atlases.SHIELD_ATLAS, pattern.func_226957_a_(false)));
         materials.add(new RenderMaterial(Atlases.BANNER_ATLAS, pattern.func_226957_a_(true)));
