@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = CookieCore.MODID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = CookieCore.MODID, value = Dist.CLIENT)
 public class BannerTextures {
 
   @SubscribeEvent
