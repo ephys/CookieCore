@@ -72,4 +72,13 @@ public @interface Config {
 
     Class<? extends Enum<?>> enumType();
   }
+
+  /**
+   * Use this on a static method to define config options that
+   */
+  @Target(value = ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface OnBuildConfig {
+    ModConfig.Type side() default ModConfig.Type.COMMON;
+  }
 }

@@ -13,6 +13,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,12 +25,12 @@ import java.util.stream.Collectors;
  * - use type & value to generate data & default value
  * - directly put back the proper value
  * TODO listeners for config changes
- * TODO add @Config (class annotation) to define defaults (category, restart, etc)
  * TODO Add @Config.EnumDescription() to provide a description of enums
  */
 public final class ConfigSynchronizer {
 
-  private static final Type CONFIG_TYPE = Type.getType(Config.class);
+  private static final Type AT_CONFIG_TYPE = Type.getType(Config.class);
+  private static final Type AT_ON_BUILD_CONFIG_TYPE = Type.getType(Config.OnBuildConfig.class);
 
   public static Map<ModConfig.Type, ForgeConfigSpec> synchronizeConfig() {
     ModLoadingContext modLoadingContext = ModLoadingContext.get();
@@ -47,7 +49,6 @@ public final class ConfigSynchronizer {
     // get all Zip files
     for (ModFileScanData scanData : ModList.get().getAllScanData()) {
       boolean isMultiModPackage = false;
-      scanData.getAnnotations();
 
       List<IModFileInfo> modFileInfos = scanData.getIModInfoData();
 
@@ -81,7 +82,10 @@ public final class ConfigSynchronizer {
 
     List<ModFileScanData.AnnotationData> configTargets = annotations
       .stream()
-      .filter(annotationData -> CONFIG_TYPE.equals(annotationData.getAnnotationType()))
+      .filter(annotationData -> {
+        return AT_CONFIG_TYPE.equals(annotationData.getAnnotationType())
+          || AT_ON_BUILD_CONFIG_TYPE.equals(annotationData.getAnnotationType());
+      })
       .collect(Collectors.toList());
 
     // ==============================================================
@@ -231,8 +235,50 @@ public final class ConfigSynchronizer {
       return specPair.getRight();
     }
 
+    private static String getMethodNameFromSignature(String signature) {
+      int index = signature.indexOf('(');
+      if (index == -1) {
+        return signature;
+      }
+
+      return signature.substring(0, index);
+    }
+
+    private void callOnBuildConfigHook(final ModFileScanData.AnnotationData annotation, final ForgeConfigSpec.Builder rootBuilder) {
+      Method method;
+      try {
+        Class<?> clazz = Class.forName(annotation.getClassType().getClassName());
+        String methodName = getMethodNameFromSignature(annotation.getMemberName());
+        System.out.println("calling " + methodName);
+        method = clazz.getMethod(methodName, ForgeConfigSpec.Builder.class);
+      } catch(NoSuchMethodException e) {
+        throw new RuntimeException("Failed to call OnBuildConfig hook for mod " + modId
+          + ". Is " + annotation.getClassType().getClassName() + "." + annotation.getMemberName()
+          + " a static method and does it accept a single Parameter of type ForgeConfigSpec.Builder?", e);
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException("Failed to load config for mod " + modId, e);
+      }
+
+      if (!Modifier.isStatic(method.getModifiers())) {
+        throw new RuntimeException("Failed to load config: @Config.OnBuildConfig can only be used on static methods");
+      }
+
+      try {
+        method.invoke(null, rootBuilder);
+      } catch (IllegalAccessException | InvocationTargetException e) {
+        throw new RuntimeException("Failed to call OnBuildConfig hook for mod " + modId
+          + ". Is " + annotation.getClassType().getClassName() + "." + annotation.getMemberName()
+          + " public & static ?", e);
+      }
+    }
+
     private DynamicForgeConfigSpec build(final ForgeConfigSpec.Builder rootBuilder) {
       for (ModFileScanData.AnnotationData annotation : configFields) {
+
+        if (annotation.getAnnotationType().equals(AT_ON_BUILD_CONFIG_TYPE)) {
+          this.callOnBuildConfigHook(annotation, rootBuilder);
+          continue;
+        }
 
         Field field;
         try {
