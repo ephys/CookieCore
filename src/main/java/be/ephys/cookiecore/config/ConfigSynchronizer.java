@@ -332,7 +332,6 @@ public final class ConfigSynchronizer {
 
         ForgeConfigSpec.ConfigValue<?> configValue = defineConfigValue(builder, fieldName, field);
 
-        CookieCore.getLogger().error("setting field " + fieldName + "\n->" + field.getDeclaringClass().getName() + "." + field.getName());
         try {
           field.set(null, configValue);
         } catch (IllegalAccessException e) {
