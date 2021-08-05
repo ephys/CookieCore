@@ -10,8 +10,10 @@ import net.minecraft.entity.item.PaintingType;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.FlatLayerInfo;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -46,6 +48,8 @@ public class CookieCore {
     modBus.addListener(this::postInit);
 
     PAINTING_TYPES.register(modBus);
+
+    DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientCore::init);
   }
 
   // TODO Move to own feature
