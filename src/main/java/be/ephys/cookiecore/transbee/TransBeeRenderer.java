@@ -1,6 +1,7 @@
 package be.ephys.cookiecore.transbee;
 
 import be.ephys.cookiecore.config.Config;
+import be.ephys.cookiecore.core.ClientCore;
 import be.ephys.cookiecore.core.CookieCore;
 import net.minecraft.client.renderer.entity.BeeRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
@@ -21,19 +22,16 @@ public class TransBeeRenderer extends BeeRenderer {
   private static final ResourceLocation base = new ResourceLocation(CookieCore.MODID, "textures/entity/transbee/bee.png");
   private static final ResourceLocation nectar = new ResourceLocation(CookieCore.MODID, "textures/entity/transbee/bee_nectar.png");
 
-  @Config(description = "Set to empty to disable trans bees. Separate names with a space", side = ModConfig.Type.CLIENT)
-  @Config.StringDefault("zoe")
-  public static ForgeConfigSpec.ConfigValue<String> transBeeNames;
-
   private static String lastTransBeeNamesStr = null;
   private static Set<String> lastTransBeeNames = null;
 
   private static Set<String> getNames() {
-    if (Objects.equals(transBeeNames.get(), lastTransBeeNamesStr)) {
+    String transBeeNames = ClientCore.transBeeNames.get();
+    if (Objects.equals(transBeeNames, lastTransBeeNamesStr)) {
       return lastTransBeeNames;
     }
 
-    String[] parts = transBeeNames.get().split(" ");
+    String[] parts = transBeeNames.split(" ");
 
     Set<String> out = new HashSet<>();
 
@@ -46,7 +44,7 @@ public class TransBeeRenderer extends BeeRenderer {
       out.add(part);
     }
 
-    lastTransBeeNamesStr = transBeeNames.get();
+    lastTransBeeNamesStr = transBeeNames;
     lastTransBeeNames = out;
 
     return out;
