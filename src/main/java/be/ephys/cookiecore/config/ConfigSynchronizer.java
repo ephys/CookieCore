@@ -151,6 +151,8 @@ public final class ConfigSynchronizer {
     {
       Config.StringDefault annotationString = field.getAnnotation(Config.StringDefault.class);
       if (annotationString != null) {
+        assertIsConfigValue(field, String.class);
+
         return builder.define(name, annotationString.value());
       }
     }
@@ -158,6 +160,8 @@ public final class ConfigSynchronizer {
     {
       Config.BooleanDefault annotationBoolean = field.getAnnotation(Config.BooleanDefault.class);
       if (annotationBoolean != null) {
+        assertIsConfigValue(field, boolean.class);
+
         return builder.define(name, annotationBoolean.value());
       }
     }
@@ -165,6 +169,8 @@ public final class ConfigSynchronizer {
     {
       Config.IntDefault annotationInt = field.getAnnotation(Config.IntDefault.class);
       if (annotationInt != null) {
+        assertIsConfigValue(field, int.class);
+
         // defineInRange
         return builder.defineInRange(name, annotationInt.value(), annotationInt.min(), annotationInt.max());
       }
@@ -173,6 +179,8 @@ public final class ConfigSynchronizer {
     {
       Config.LongDefault annotation = field.getAnnotation(Config.LongDefault.class);
       if (annotation != null) {
+        assertIsConfigValue(field, long.class);
+
         // defineInRange
         return builder.defineInRange(name, annotation.value(), annotation.min(), annotation.max());
       }
@@ -181,6 +189,8 @@ public final class ConfigSynchronizer {
     {
       Config.DoubleDefault annotationDouble = field.getAnnotation(Config.DoubleDefault.class);
       if (annotationDouble != null) {
+        assertIsConfigValue(field, double.class);
+
         return builder.defineInRange(name, annotationDouble.value(), annotationDouble.min(), annotationDouble.max());
       }
     }
@@ -188,6 +198,8 @@ public final class ConfigSynchronizer {
     {
       Config.EnumDefault annotationEnum = field.getAnnotation(Config.EnumDefault.class);
       if (annotationEnum != null) {
+        assertIsConfigValue(field, Enum.class);
+
         @SuppressWarnings("unchecked")
         Class<E> enumClass = (Class<E>) annotationEnum.enumType();
 
@@ -196,14 +208,42 @@ public final class ConfigSynchronizer {
 
         return builder.defineEnum(name, defaultValue, acceptableValues);
       }
+
+      {
+        Config.StringListDefault annotation = field.getAnnotation(Config.StringListDefault.class);
+
+        if (annotation != null) {
+          assertIsList(field, String.class);
+          String[] value = annotation.value();
+
+          return builder.defineList(name, Arrays.asList(value), val -> val.getClass() == String.class);
+        }
+      }
     }
 
-    CookieCore.getLogger().error(
-      "Failed to determine type of config field "
-        + field.getDeclaringClass().getName() + " " + field.getName()
+    throw new RuntimeException(
+      "[CookieCore Config] Failed to determine type of config field "
+        + field.getDeclaringClass().getName() + "." + field.getName()
         + ". Please specify it using one of the available @Config.<type>Default annotations");
+  }
 
-    return null;
+  private static void assertIsConfigValue(Field field, Class<?> genericType) {
+    // TODO: check generic type
+
+    if (
+      !ForgeConfigSpec.ConfigValue.class.isAssignableFrom(field.getType())
+    ) {
+      throw new Error("[CookieCore Config] Field "
+        + field.getDeclaringClass().getName() + "." + field.getName()
+        + " must be of type ForgeConfigSpec.ConfigValue<" + genericType.getName() + "> (got " + field.getType().getName() + ")"
+      );
+    }
+  }
+
+  private static void assertIsList(Field field, Class<?> generic) {
+    assertIsConfigValue(field, List.class);
+
+    // TODO: check list generic type
   }
 
   private static <T extends Enum<T>> EnumSet<T> getEnums(Class<T> aClass) {
@@ -249,7 +289,6 @@ public final class ConfigSynchronizer {
       try {
         Class<?> clazz = Class.forName(annotation.getClassType().getClassName());
         String methodName = getMethodNameFromSignature(annotation.getMemberName());
-        System.out.println("calling " + methodName);
         method = clazz.getMethod(methodName, ForgeConfigSpec.Builder.class);
       } catch(NoSuchMethodException e) {
         throw new RuntimeException("Failed to call OnBuildConfig hook for mod " + modId

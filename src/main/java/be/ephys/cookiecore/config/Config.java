@@ -31,6 +31,16 @@ public @interface Config {
 
   @Target(value = ElementType.FIELD)
   @Retention(RetentionPolicy.RUNTIME)
+  @interface StringListDefault {
+    /**
+     * While this must be a String[] due to annotation restrictions,
+     * the field type must be `ForgeConfigSpec.ConfigValue<List<String>>`
+     */
+    String[] value();
+  }
+
+  @Target(value = ElementType.FIELD)
+  @Retention(RetentionPolicy.RUNTIME)
   @interface BooleanDefault {
     boolean value();
   }

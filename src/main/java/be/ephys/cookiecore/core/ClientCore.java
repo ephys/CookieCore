@@ -7,11 +7,13 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.config.ModConfig;
 
+import java.util.List;
+
 public class ClientCore {
 
   @Config(description = "Set to empty to disable trans bees. Separate names with a space", side = ModConfig.Type.CLIENT)
-  @Config.StringDefault("zoe")
-  public static ForgeConfigSpec.ConfigValue<String> transBeeNames;
+  @Config.StringListDefault({"zoe"})
+  public static ForgeConfigSpec.ConfigValue<List<String>> transBeeNames;
 
   public static void init() {
     if (TransBeeRenderer.enabled()) {

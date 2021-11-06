@@ -1,6 +1,5 @@
 package be.ephys.cookiecore.transbee;
 
-import be.ephys.cookiecore.config.Config;
 import be.ephys.cookiecore.core.ClientCore;
 import be.ephys.cookiecore.core.CookieCore;
 import net.minecraft.client.renderer.entity.BeeRenderer;
@@ -10,10 +9,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.config.ModConfig;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
 public class TransBeeRenderer extends BeeRenderer {
@@ -22,20 +21,19 @@ public class TransBeeRenderer extends BeeRenderer {
   private static final ResourceLocation base = new ResourceLocation(CookieCore.MODID, "textures/entity/transbee/bee.png");
   private static final ResourceLocation nectar = new ResourceLocation(CookieCore.MODID, "textures/entity/transbee/bee_nectar.png");
 
-  private static String lastTransBeeNamesStr = null;
+  private static List<String> lastTransBeeNamesStr = null;
   private static Set<String> lastTransBeeNames = null;
 
   private static Set<String> getNames() {
-    String transBeeNames = ClientCore.transBeeNames.get();
-    if (Objects.equals(transBeeNames, lastTransBeeNamesStr)) {
+    List<String> transBeeNames = ClientCore.transBeeNames.get();
+    // yes it's an object, but we're checking if it's the exact same object.
+    if (transBeeNames == lastTransBeeNamesStr) {
       return lastTransBeeNames;
     }
 
-    String[] parts = transBeeNames.split(" ");
-
     Set<String> out = new HashSet<>();
 
-    for (String part: parts) {
+    for (String part : transBeeNames) {
       part = part.trim();
       if (part.length() == 0) {
         continue;
