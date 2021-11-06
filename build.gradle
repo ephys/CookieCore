@@ -100,14 +100,20 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.2-33.0.22'
+    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
 }
 
 processResources {
     // replace
     from(sourceSets.main.resources.srcDirs) {
         include 'META-INF/mods.toml'
-        expand 'version': project.version
+        expand (
+            'version': project.version,
+            'forge_version': forge_version,
+            'forge_version_major': forge_version_major,
+            'mc_version': mc_version,
+            'mc_version_next_major': mc_version_next_major
+        )
     }
 
     from(sourceSets.main.resources.srcDirs) {
