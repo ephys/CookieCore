@@ -108,7 +108,7 @@ processResources {
     from(sourceSets.main.resources.srcDirs) {
         include 'META-INF/mods.toml'
         expand (
-            'version': project.version,
+            'version': mod_version,
             'forge_version': forge_version,
             'forge_version_major': forge_version_major,
             'mc_version': mc_version,
@@ -130,7 +130,7 @@ jar {
             "Specification-Vendor": "ephys",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,
-            "Implementation-Version": project.version,
+            "Implementation-Version": mod_version,
             "Implementation-Vendor" :"ephys",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
 
