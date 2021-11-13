@@ -32,7 +32,7 @@ public final class ConfigSynchronizer {
   private static final Type AT_CONFIG_TYPE = Type.getType(Config.class);
   private static final Type AT_ON_BUILD_CONFIG_TYPE = Type.getType(Config.OnBuildConfig.class);
 
-  public static Map<ModConfig.Type, ForgeConfigSpec> synchronizeConfig() {
+  public static Map<ModConfig.Type, Pair<BuiltConfig, ForgeConfigSpec>> synchronizeConfig() {
     ModLoadingContext modLoadingContext = ModLoadingContext.get();
     String modId = modLoadingContext.getActiveContainer().getModId();
 
@@ -115,7 +115,7 @@ public final class ConfigSynchronizer {
       commonConfigTargets.add(configTarget);
     }
 
-    Map<ModConfig.Type, ForgeConfigSpec> specPairMap = new HashMap<>();
+    Map<ModConfig.Type, Pair<BuiltConfig, ForgeConfigSpec>> specPairMap = new HashMap<>();
 
     if (commonConfigTargets.size() > 0) {
       specPairMap.put(ModConfig.Type.COMMON, buildAndRegisterConfig(modId, requiresExplicitModId, ModConfig.Type.COMMON, commonConfigTargets));
@@ -132,19 +132,18 @@ public final class ConfigSynchronizer {
     return specPairMap;
   }
 
-  private static ForgeConfigSpec buildAndRegisterConfig(
+  private static Pair<BuiltConfig, ForgeConfigSpec> buildAndRegisterConfig(
     String modId,
     boolean requiresExplicitModId,
     ModConfig.Type configType,
     List<ModFileScanData.AnnotationData> configFields
   ) {
 
-    DynamicForgeConfigSpec configSpec = new DynamicForgeConfigSpec(modId, configFields, requiresExplicitModId);
-    ForgeConfigSpec spec = configSpec.buildSpec();
+    Pair<BuiltConfig, ForgeConfigSpec> configPair = BuiltConfig.build(modId, configFields, requiresExplicitModId);
 
-    ModLoadingContext.get().registerConfig(configType, configSpec.buildSpec());
+    ModLoadingContext.get().registerConfig(configType, configPair.getRight());
 
-    return spec;
+    return configPair;
   }
 
   private static <E extends Enum<E>> ForgeConfigSpec.ConfigValue<?> defineConfigValue(ForgeConfigSpec.Builder builder, String name, Field field) {
@@ -258,21 +257,30 @@ public final class ConfigSynchronizer {
     return Enum.valueOf(aClass, enumName);
   }
 
-  public static final class DynamicForgeConfigSpec {
+  public static final class BuiltConfig {
     private final List<ModFileScanData.AnnotationData> configFields;
     private final String modId;
     private final boolean requiresExplicitModId;
 
-    public DynamicForgeConfigSpec(String modId, List<ModFileScanData.AnnotationData> configFields, boolean requiresExplicitModId) {
+    private final Map<String, ForgeConfigSpec.ConfigValue<?>> configValues = new HashMap<>();
+
+    public BuiltConfig(String modId, List<ModFileScanData.AnnotationData> configFields, boolean requiresExplicitModId) {
       this.configFields = configFields;
       this.modId = modId;
       this.requiresExplicitModId = requiresExplicitModId;
     }
 
-    public ForgeConfigSpec buildSpec() {
+    public static Pair<BuiltConfig, ForgeConfigSpec> build(String modId, List<ModFileScanData.AnnotationData> configFields, boolean requiresExplicitModId) {
+      BuiltConfig specBuilder = new BuiltConfig(modId, configFields, requiresExplicitModId);
+
       ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
-      final Pair<DynamicForgeConfigSpec, ForgeConfigSpec> specPair = builder.configure(this::build);
-      return specPair.getRight();
+      final Pair<BuiltConfig, ForgeConfigSpec> specPair = builder.configure(specBuilder::build);
+
+      return specPair;
+    }
+
+    public ForgeConfigSpec.ConfigValue<?> getConfigValue(String configKey) {
+      return configValues.get(configKey);
     }
 
     private static String getMethodNameFromSignature(String signature) {
@@ -311,7 +319,7 @@ public final class ConfigSynchronizer {
       }
     }
 
-    private DynamicForgeConfigSpec build(final ForgeConfigSpec.Builder rootBuilder) {
+    private BuiltConfig build(final ForgeConfigSpec.Builder rootBuilder) {
       for (ModFileScanData.AnnotationData annotation : configFields) {
 
         if (annotation.getAnnotationType().equals(AT_ON_BUILD_CONFIG_TYPE)) {
@@ -364,12 +372,14 @@ public final class ConfigSynchronizer {
           builder = builder.worldRestart();
         }
 
-        String fieldName = configMeta.name();
-        if (fieldName.isEmpty()) {
-          fieldName = field.getName();
+        String configKey = configMeta.name();
+        if (configKey.isEmpty()) {
+          configKey = field.getName();
         }
 
-        ForgeConfigSpec.ConfigValue<?> configValue = defineConfigValue(builder, fieldName, field);
+        ForgeConfigSpec.ConfigValue<?> configValue = defineConfigValue(builder, configKey, field);
+
+        configValues.put(configKey, configValue);
 
         try {
           field.set(null, configValue);
