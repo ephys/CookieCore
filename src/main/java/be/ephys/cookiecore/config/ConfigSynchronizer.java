@@ -1,10 +1,13 @@
 package be.ephys.cookiecore.config;
 
 import be.ephys.cookiecore.core.CookieCore;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.moddiscovery.ModAnnotation;
 import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
@@ -12,6 +15,7 @@ import net.minecraftforge.forgespi.language.ModFileScanData;
 import org.apache.commons.lang3.tuple.Pair;
 import org.objectweb.asm.Type;
 
+import java.lang.annotation.ElementType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +35,7 @@ public final class ConfigSynchronizer {
 
   private static final Type AT_CONFIG_TYPE = Type.getType(Config.class);
   private static final Type AT_ON_BUILD_CONFIG_TYPE = Type.getType(Config.OnBuildConfig.class);
+  private static final Type ONLY_IN_TYPE = Type.getType(OnlyIn.class);
 
   public static Map<ModConfig.Type, ForgeConfigSpec> synchronizeConfig() {
     ModLoadingContext modLoadingContext = ModLoadingContext.get();
@@ -80,9 +85,26 @@ public final class ConfigSynchronizer {
       annotations = new HashSet<>();
     }
 
+    // skip class with mismatching @OnlyIn()
+    WeakHashMap<Type, Dist> classDists = new WeakHashMap<>();
+    for (ModFileScanData.AnnotationData annotationData : annotations) {
+      if (!ONLY_IN_TYPE.equals(annotationData.getAnnotationType()) || annotationData.getTargetType() != ElementType.TYPE) {
+        continue;
+      }
+
+      ModAnnotation.EnumHolder distEnumHolder = (ModAnnotation.EnumHolder) annotationData.getAnnotationData().get("value");
+      classDists.put(annotationData.getClassType(), Dist.valueOf(distEnumHolder.getValue()));
+    }
+
     List<ModFileScanData.AnnotationData> configTargets = annotations
       .stream()
       .filter(annotationData -> {
+        Dist preferredDist = classDists.get(annotationData.getClassType());
+
+        if (preferredDist != null && FMLEnvironment.dist != preferredDist) {
+          return false;
+        }
+
         return AT_CONFIG_TYPE.equals(annotationData.getAnnotationType())
           || AT_ON_BUILD_CONFIG_TYPE.equals(annotationData.getAnnotationType());
       })
