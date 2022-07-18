@@ -1,9 +1,8 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 
 import java.lang.reflect.Array;
 
@@ -18,11 +17,11 @@ public class GenericArrayNbtWriter<T> implements NbtWriter<T[]> {
   }
 
   @Override
-  public INBT toNbt(T[] data) {
-    ListNBT tagList = new ListNBT();
+  public Tag toNbt(T[] data) {
+    ListTag tagList = new ListTag();
 
     // this is a hack to note the length of the array as we cannot store nulls in the array
-    CompoundNBT finalTag = new CompoundNBT();
+    CompoundTag finalTag = new CompoundTag();
     finalTag.putInt("ganw__length", data.length);
 
     for (int i = 0; i < data.length; i++) {
@@ -32,15 +31,15 @@ public class GenericArrayNbtWriter<T> implements NbtWriter<T[]> {
         continue;
       }
 
-      INBT componentNbt = componentWriter.toNbt(datum);
-      if (!(componentNbt instanceof CompoundNBT)) {
-        CompoundNBT wrapper = new CompoundNBT();
+      Tag componentNbt = componentWriter.toNbt(datum);
+      if (!(componentNbt instanceof CompoundTag)) {
+        CompoundTag wrapper = new CompoundTag();
         wrapper.put("ganw__item", componentNbt);
 
         componentNbt = wrapper;
       }
 
-      CompoundNBT subtag = (CompoundNBT) componentNbt;
+      CompoundTag subtag = (CompoundTag) componentNbt;
       subtag.putInt("ganw__slot", i);
 
       tagList.add(subtag);
@@ -50,19 +49,19 @@ public class GenericArrayNbtWriter<T> implements NbtWriter<T[]> {
   }
 
   @Override
-  public T[] fromNbt(INBT nbt) {
-    ListNBT tagList = (ListNBT) nbt;
+  public T[] fromNbt(Tag nbt) {
+    ListTag tagList = (ListTag) nbt;
 
-    int length = ((ListNBT) nbt).getCompound(0).getInt("ganw__length");
+    int length = ((ListTag) nbt).getCompound(0).getInt("ganw__length");
 
     final T[] array = (T[]) Array.newInstance(this.componentClass, length);
 
-    int tagCount = ((ListNBT) nbt).size();
+    int tagCount = ((ListTag) nbt).size();
     for (int i = 1; i < tagCount; i++) {
-      CompoundNBT tagMeta = tagList.getCompound(i);
+      CompoundTag tagMeta = tagList.getCompound(i);
       int slot = tagMeta.getInt("ganw__slot");
 
-      INBT tag = tagMeta.contains("ganw__slot") ? tagMeta.get("ganw__item") : tagMeta;
+      Tag tag = tagMeta.contains("ganw__slot") ? tagMeta.get("ganw__item") : tagMeta;
 
       array[slot] = this.componentWriter.fromNbt(tag);
     }

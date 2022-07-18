@@ -4,22 +4,20 @@ import be.ephys.cookiecore.config.Config;
 import be.ephys.cookiecore.config.ConfigSynchronizer;
 import be.ephys.cookiecore.helpers.DebugHelper;
 import be.ephys.cookiecore.registries.FlatPresetRegistry;
-import be.ephys.cookiecore.registries.banner.BannerRegistry;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.item.PaintingType;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.gen.FlatLayerInfo;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.decoration.Motive;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,19 +40,14 @@ public class CookieCore {
 
     IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-    modBus.addListener(this::commonSetup);
     modBus.addListener(this::postInit);
 
     PAINTING_TYPES.register(modBus);
   }
 
-  // TODO Move to own feature
-  public static DeferredRegister<PaintingType> PAINTING_TYPES = DeferredRegister.create(ForgeRegistries.PAINTING_TYPES, CookieCore.MODID);
-  public static RegistryObject<PaintingType> PAINTING_ZEN = PAINTING_TYPES.register("zen",()-> new PaintingType(16, 32));
-
-  public void commonSetup(FMLCommonSetupEvent event) {
-    BannerRegistry.addPattern("cc_dino", "cc_dino", Blocks.BONE_BLOCK);
-  }
+  // TODO Move to Fundamental, as well as banner
+  public static DeferredRegister<Motive> PAINTING_TYPES = DeferredRegister.create(ForgeRegistries.PAINTING_TYPES, CookieCore.MODID);
+  public static RegistryObject<Motive> PAINTING_ZEN = PAINTING_TYPES.register("zen",()-> new Motive(16, 32));
 
   public void postInit(FMLClientSetupEvent event) {
 
@@ -74,27 +67,18 @@ public class CookieCore {
     if (enableTerracottaWorldPreset.get()) {
       FlatPresetRegistry.addPresetAt(0,
         FlatPresetRegistry.buildPreset(
-          new TranslationTextComponent("cookiecore.superflat.cookie_realmn"),
-          Blocks.WHITE_TERRACOTTA,
+          new TranslatableComponent("cookiecore.superflat.cookie_realmn"),
+          Blocks.WHITE_CONCRETE,
           Biomes.MUSHROOM_FIELDS,
           null,
           false,
           false,
-          false,
           new FlatLayerInfo[]{
-            new FlatLayerInfo(63, Blocks.WHITE_TERRACOTTA),
+            new FlatLayerInfo(63, Blocks.WHITE_CONCRETE),
             new FlatLayerInfo(1, Blocks.BEDROCK)
           }
         )
       );
     }
   }
-
-  // TODO
-//  @NetworkCheckHandler
-//  public boolean acceptConnection(Map<String, String> modList, Side side) {
-//
-//    // Mod can be used on both client & server even if the other party doesn't have it installed
-//    return true;
-//  }
 }

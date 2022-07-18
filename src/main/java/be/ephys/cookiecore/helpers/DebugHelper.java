@@ -1,8 +1,8 @@
 package be.ephys.cookiecore.helpers;
 
 import be.ephys.cookiecore.core.CookieCore;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public final class DebugHelper {
 
@@ -10,7 +10,7 @@ public final class DebugHelper {
 
   private static boolean getDebug() {
     try {
-      World.class.getMethod("getBlockState", BlockPos.class);
+      Level.class.getMethod("getBlockState", BlockPos.class);
       CookieCore.getLogger().info("Dev environnement detected");
       return true;
     } catch (Exception e) {
@@ -18,8 +18,8 @@ public final class DebugHelper {
     }
   }
 
-  public static void sidedDebug(World world, String message) {
-    CookieCore.getLogger().info("[" + (world.isRemote ? "CLIENT" : "SERVER") + "] " + message);
+  public static void sidedDebug(Level world, String message) {
+    CookieCore.getLogger().info("[" + (world.isClientSide() ? "CLIENT" : "SERVER") + "] " + message);
   }
 
   public static String arrayToString(Object[] array) {

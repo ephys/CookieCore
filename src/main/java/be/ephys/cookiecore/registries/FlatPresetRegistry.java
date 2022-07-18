@@ -1,69 +1,68 @@
 package be.ephys.cookiecore.registries;
 
-import net.minecraft.client.gui.screen.FlatPresetsScreen;
-import net.minecraft.util.IItemProvider;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.FlatLayerInfo;
-import net.minecraft.world.gen.feature.structure.Structure;
+import net.minecraft.client.gui.screens.PresetFlatWorldScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
+import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
 public class FlatPresetRegistry {
 
   public static int presetCount() {
-    return FlatPresetsScreen.FLAT_WORLD_PRESETS.size();
+    return PresetFlatWorldScreen.PRESETS.size();
   }
 
-  public static void addPresetAt(int pos, FlatPresetsScreen.LayerItem preset) {
-    FlatPresetsScreen.FLAT_WORLD_PRESETS.add(pos, preset);
+  public static void addPresetAt(int pos, PresetFlatWorldScreen.PresetInfo preset) {
+    PresetFlatWorldScreen.PRESETS.add(pos, preset);
   }
 
-  public static FlatPresetsScreen.LayerItem buildPreset(
-    ITextComponent name,
-    IItemProvider icon,
-    RegistryKey<Biome> biome,
-    List<Structure<?>> structures,
+  public static PresetFlatWorldScreen.PresetInfo buildPreset(
+    Component name,
+    ItemLike icon,
+    ResourceKey<Biome> biome,
+    Set<ResourceKey<StructureSet>> structures,
     boolean p_238640_4_,
     boolean p_238640_5_,
-    boolean p_238640_6_,
     FlatLayerInfo[] layers
   ) {
 
     if (structures == null) {
-      structures = Collections.emptyList();
+      structures = Collections.emptySet();
     }
 
-    FlatPresetsScreen.func_238640_a_(name, icon, biome, structures, p_238640_4_, p_238640_5_, p_238640_6_, layers);
+    PresetFlatWorldScreen.preset(name, icon, biome, structures, p_238640_4_, p_238640_5_, layers);
 
-    return FlatPresetsScreen.FLAT_WORLD_PRESETS.remove(presetCount() - 1);
+    return PresetFlatWorldScreen.PRESETS.remove(presetCount() - 1);
   }
 
-  public static FlatPresetsScreen.LayerItem removeByName(String name) {
-    return removeByName(new TranslationTextComponent(name));
+  public static PresetFlatWorldScreen.PresetInfo removeByName(String name) {
+    return removeByName(new TranslatableComponent(name));
   }
 
-  public static FlatPresetsScreen.LayerItem removeByName(ITextComponent name) {
+  public static PresetFlatWorldScreen.PresetInfo removeByName(Component name) {
     for (int i = 0; i < presetCount(); i++) {
-      FlatPresetsScreen.LayerItem preset = FlatPresetsScreen.FLAT_WORLD_PRESETS.get(i);
+      PresetFlatWorldScreen.PresetInfo preset = PresetFlatWorldScreen.PRESETS.get(i);
 
       if (preset.name.equals(name)) {
-        return FlatPresetsScreen.FLAT_WORLD_PRESETS.remove(i);
+        return PresetFlatWorldScreen.PRESETS.remove(i);
       }
     }
 
     return null;
   }
 
-  public static FlatPresetsScreen.LayerItem getByName(ITextComponent name) {
+  public static PresetFlatWorldScreen.PresetInfo getByName(Component name) {
     for (int i = 0; i < presetCount(); i++) {
-      FlatPresetsScreen.LayerItem preset = FlatPresetsScreen.FLAT_WORLD_PRESETS.get(i);
+      PresetFlatWorldScreen.PresetInfo preset = PresetFlatWorldScreen.PRESETS.get(i);
 
       if (preset.name.equals(name)) {
         return preset;

@@ -1,20 +1,19 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 
 import java.util.UUID;
 
 public class UuidNbtWriter implements NbtWriter<UUID> {
 
   @Override
-  public INBT toNbt(UUID data) {
-    return NBTUtil.func_240626_a_(data);
+  public Tag toNbt(UUID data) {
+    return NbtUtils.createUUID(data);
   }
 
   @Override
-  public UUID fromNbt(INBT nbt) {
-    return NBTUtil.readUniqueId(nbt);
+  public UUID fromNbt(Tag nbt) {
+    return NbtUtils.loadUUID(nbt);
   }
 }

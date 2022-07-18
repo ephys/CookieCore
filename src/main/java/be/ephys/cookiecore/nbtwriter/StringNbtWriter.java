@@ -1,17 +1,17 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.StringNBT;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 
 public class StringNbtWriter implements NbtWriter<String> {
 
   @Override
-  public INBT toNbt(String data) {
-    return StringNBT.valueOf(data);
+  public Tag toNbt(String data) {
+    return StringTag.valueOf(data);
   }
 
   @Override
-  public String fromNbt(INBT nbt) {
-    return nbt.getString();
+  public String fromNbt(Tag nbt) {
+    return nbt.getAsString();
   }
 }

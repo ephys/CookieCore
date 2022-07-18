@@ -1,10 +1,10 @@
 package be.ephys.cookiecore.nbtwriter;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 public interface INbtSerializable {
 
-  CompoundNBT writeToNBT(CompoundNBT tag);
+  CompoundTag writeToNBT(CompoundTag tag);
 
-  void readFromNBT(CompoundNBT tag);
+  void readFromNBT(CompoundTag tag);
 }

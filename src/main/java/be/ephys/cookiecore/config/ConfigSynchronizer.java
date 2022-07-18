@@ -88,25 +88,25 @@ public final class ConfigSynchronizer {
     // skip class with mismatching @OnlyIn()
     WeakHashMap<Type, Dist> classDists = new WeakHashMap<>();
     for (ModFileScanData.AnnotationData annotationData : annotations) {
-      if (!ONLY_IN_TYPE.equals(annotationData.getAnnotationType()) || annotationData.getTargetType() != ElementType.TYPE) {
+      if (!ONLY_IN_TYPE.equals(annotationData.annotationType()) || annotationData.targetType() != ElementType.TYPE) {
         continue;
       }
 
-      ModAnnotation.EnumHolder distEnumHolder = (ModAnnotation.EnumHolder) annotationData.getAnnotationData().get("value");
-      classDists.put(annotationData.getClassType(), Dist.valueOf(distEnumHolder.getValue()));
+      ModAnnotation.EnumHolder distEnumHolder = (ModAnnotation.EnumHolder) annotationData.annotationData().get("value");
+      classDists.put(annotationData.clazz(), Dist.valueOf(distEnumHolder.getValue()));
     }
 
     List<ModFileScanData.AnnotationData> configTargets = annotations
       .stream()
       .filter(annotationData -> {
-        Dist preferredDist = classDists.get(annotationData.getClassType());
+        Dist preferredDist = classDists.get(annotationData.clazz());
 
         if (preferredDist != null && FMLEnvironment.dist != preferredDist) {
           return false;
         }
 
-        return AT_CONFIG_TYPE.equals(annotationData.getAnnotationType())
-          || AT_ON_BUILD_CONFIG_TYPE.equals(annotationData.getAnnotationType());
+        return AT_CONFIG_TYPE.equals(annotationData.annotationType())
+          || AT_ON_BUILD_CONFIG_TYPE.equals(annotationData.annotationType());
       })
       .collect(Collectors.toList());
 
@@ -119,7 +119,7 @@ public final class ConfigSynchronizer {
     List<ModFileScanData.AnnotationData> serverConfigTargets = new ArrayList<>();
 
     for (ModFileScanData.AnnotationData configTarget : configTargets) {
-      ModAnnotation.EnumHolder configTypeHolder = (ModAnnotation.EnumHolder) configTarget.getAnnotationData().get("side");
+      ModAnnotation.EnumHolder configTypeHolder = (ModAnnotation.EnumHolder) configTarget.annotationData().get("side");
       ModConfig.Type configType = configTypeHolder == null
         ? ModConfig.Type.COMMON
         : ModConfig.Type.valueOf(configTypeHolder.getValue());
@@ -317,12 +317,12 @@ public final class ConfigSynchronizer {
     private void callOnBuildConfigHook(final ModFileScanData.AnnotationData annotation, final ForgeConfigSpec.Builder rootBuilder) {
       Method method;
       try {
-        Class<?> clazz = Class.forName(annotation.getClassType().getClassName());
-        String methodName = getMethodNameFromSignature(annotation.getMemberName());
+        Class<?> clazz = Class.forName(annotation.clazz().getClassName());
+        String methodName = getMethodNameFromSignature(annotation.memberName());
         method = clazz.getMethod(methodName, ForgeConfigSpec.Builder.class);
       } catch(NoSuchMethodException e) {
         throw new RuntimeException("Failed to call OnBuildConfig hook for mod " + modId
-          + ". Is " + annotation.getClassType().getClassName() + "." + annotation.getMemberName()
+          + ". Is " + annotation.clazz().getClassName() + "." + annotation.memberName()
           + " a static method and does it accept a single Parameter of type ForgeConfigSpec.Builder?", e);
       } catch (ClassNotFoundException e) {
         throw new RuntimeException("Failed to load config for mod " + modId, e);
@@ -336,7 +336,7 @@ public final class ConfigSynchronizer {
         method.invoke(null, rootBuilder);
       } catch (IllegalAccessException | InvocationTargetException e) {
         throw new RuntimeException("Failed to call OnBuildConfig hook for mod " + modId
-          + ". Is " + annotation.getClassType().getClassName() + "." + annotation.getMemberName()
+          + ". Is " + annotation.clazz().getClassName() + "." + annotation.memberName()
           + " public & static ?", e);
       }
     }
@@ -344,15 +344,15 @@ public final class ConfigSynchronizer {
     private BuiltConfig build(final ForgeConfigSpec.Builder rootBuilder) {
       for (ModFileScanData.AnnotationData annotation : configFields) {
 
-        if (annotation.getAnnotationType().equals(AT_ON_BUILD_CONFIG_TYPE)) {
+        if (annotation.annotationType().equals(AT_ON_BUILD_CONFIG_TYPE)) {
           this.callOnBuildConfigHook(annotation, rootBuilder);
           continue;
         }
 
         Field field;
         try {
-          Class<?> clazz = Class.forName(annotation.getClassType().getClassName());
-          field = clazz.getField(annotation.getMemberName());
+          Class<?> clazz = Class.forName(annotation.clazz().getClassName());
+          field = clazz.getField(annotation.memberName());
         } catch (ClassNotFoundException | NoSuchFieldException e) {
           throw new RuntimeException("Failed to load config for mod " + modId, e);
         }

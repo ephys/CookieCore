@@ -1,10 +1,10 @@
 modLoader="javafml"
-loaderVersion="[${forge_version_major},)"
+loaderVersion="[40,)"
 license="MIT"
 issueTrackerURL="https://github.com/Ephys/CookieCore/issues"
 [[mods]]
 modId="cookiecore"
-version="${version}"
+version="${file.jarVersion}"
 displayName="CookieCore"
 updateJSONURL="https://mc-curse-update-checker.herokuapp.com/222908"
 displayURL="https://github.com/Ephys/CookieCore"
@@ -17,12 +17,12 @@ NBT Utilities
 [[dependencies.cookiecore]]
     modId="forge"
     mandatory=true
-    versionRange="[${forge_version_major},)"
+    versionRange="[40,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.cookiecore]]
     modId="minecraft"
     mandatory=true
-    versionRange="[${mc_version}, ${mc_version_next_major})"
+    versionRange="[1.18.2,1.19)"
     ordering="NONE"
     side="BOTH"
