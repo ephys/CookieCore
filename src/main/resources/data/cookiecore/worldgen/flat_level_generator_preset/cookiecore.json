@@ -1,0 +1,16 @@
+{
+  "display": "minecraft:white_concrete",
+  "settings": {
+    "layers": [
+      {
+        "block": "minecraft:bedrock",
+        "height": 1
+      },
+      {
+        "block": "minecraft:white_concrete",
+        "height": 63
+      }
+    ],
+    "biome": "minecraft:mushroom_fields"
+  }
+}
