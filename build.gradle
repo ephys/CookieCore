@@ -14,7 +14,7 @@ tasks.named('wrapper', Wrapper).configure {
     distributionType = Wrapper.DistributionType.BIN
 }
 
-version = mod_version
+version = minecraft_version + '-' + mod_version
 group = mod_group_id
 
 repositories {
@@ -195,14 +195,21 @@ publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
+            artifactId = mod_id
         }
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            name = 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/ephys/cookiecore")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
         }
     }
 }
+
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
